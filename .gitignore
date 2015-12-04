@@ -1,0 +1,12 @@
+
+db_ops.pyc
+.DS_Store
+node_modules
+
+static/.bowerrc
+static/.sass-cache
+static/.sass-cache/*
+static/sass/.sass-cache
+static/sass/.sass-cache/*
+static/build/*
+build/*
