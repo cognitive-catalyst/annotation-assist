@@ -1,0 +1,59 @@
+
+.btn {
+    align-self: flex-start;
+    text-align: center;
+    border: 0;
+    padding: 10px 20px 10px 20px;
+    margin: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    vertical-align: top;
+    width: 210px;
+    margin-right: 10px;
+    color: black;
+    font-weight: bold;
+    background: $blue-light;
+    text-transform: uppercase;
+    @include transitions(background, 1s, ease);
+
+    &:hover {
+    	background: rgba($blue-light, 0.75);
+    	@include transitions(background, .3s, ease);
+    }
+
+    &.active, .within-purview {
+    	background: #000;
+    	color: white;
+    }
+
+    &.outside-of-purview, &.not-similar {
+    	background: $pale-orange;
+
+        &:hover {
+            background: darken($pale-orange, 10%);
+        }
+    }
+
+    &.submit {
+    	background: $lavender;
+    	color: white !important;
+
+        &:hover {
+            background: darken($lavender, 10%);
+        }
+    }
+
+    &.within-purview, &.similar {
+        background: $green;
+        color: black;
+
+        &:hover {
+            background: darken($green, 10%);
+        }
+    }
+
+    &.disabled {
+    	@extend .submit;
+    	background: lighten($lavender, 30%);
+    }
+}

@@ -1,0 +1,32 @@
+.query_card_background {
+    @include transitions(background, 1.7s, ease);
+    width: 100%;
+    .card {
+        padding: 30px 40px 10px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        .heading {
+            font-size: 14px;
+            margin: 3px;
+            color: lighten($gray, 0.5);
+            width: 50%;
+            display: inline-block;
+        }
+        .loading{
+            margin-top: 30px;
+            margin: 0 auto;
+        }
+        .question {
+            font-size: 30px;
+            margin: 15px 0;
+        }
+
+        .purview {
+            display: flex;
+            flex-direction: row;
+            // justify-content: flex-start;
+            width: 100%;
+        }
+    }
+}

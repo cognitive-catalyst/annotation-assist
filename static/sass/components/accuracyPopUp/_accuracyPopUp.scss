@@ -1,0 +1,101 @@
+
+.accuracy-pop-up{
+
+    $pop-up-width:630;
+    
+    flex:1;
+    display:flex;
+    justify-content: flex-end;
+    position:relative;
+    .display-text{
+        cursor:pointer;
+        display:inline-block;
+        color:$blue-dark;
+        text-decoration: underline;
+        align-self:flex-end;
+    }
+
+    .pop-up-wrapper{
+        position:relative;
+    }
+
+    .pop-up{
+        $pop-up-padding:10;
+        $shift-up:20;
+
+        box-shadow:1px 1px 5px 5px rgba(100,100,100,0.1);
+        position:absolute;
+        top:-$shift-up;
+        left:-$pop-up-width - 120;
+        padding:$pop-up-padding;
+        width:$pop-up-width;
+        display:flex;
+        flex-direction: column;
+        background-color: white;
+
+        &::after{
+            position:absolute;
+            top:$shift-up + 40 - 17;
+            left:$pop-up-width+2*$pop-up-padding - 3;
+            content:"▶";
+            transform: scaleY(1.5);
+            color:white;
+            text-shadow: 6px 0px 5px rgba(100,100,100,0.1);
+        }
+
+
+        .close{
+            position: absolute;
+            cursor:pointer;
+            top: 10;
+            color:$blue-dark;
+            left:$pop-up-width - 5;
+            font-size: 20px;
+        }
+
+        .top-row{
+            display:flex;
+            flex-direction:column;
+            align-items: center;
+            margin-bottom:10px;
+            .watson-logo{
+                max-height: 50px;
+            }
+
+            .pop-up-header{
+                font-size:20px;
+                font-weight:600;
+
+                margin:10px;
+            }
+        }
+
+        .bottom-row{
+            display:flex;
+            flex:1;
+            .info-box{
+                padding:0 16px;
+                flex:1;
+
+                .category-header{
+                    font-weight:bold;
+                }
+            }
+
+            .component-left{
+                background-color:#FFA572;
+                margin-right:2px;
+            }
+            .component-right{
+                background-color:#8CD211;
+            }
+
+            .questions{
+                padding:0;
+                list-style-type: none;
+                font-style: italic;
+                font-weight:bold;
+            }
+        }
+    }
+}

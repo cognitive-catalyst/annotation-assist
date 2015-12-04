@@ -1,0 +1,330 @@
+[
+  {
+    "pauId": "8182DEB3B50A2DA9844CFA76FB690282",
+    "text": " Watson is currently English-only. However, support for more languages is planned, although no specific timelines are released. The content that is used for training a Watson system must be in English. Translation APIs or translation service capabilities can be used to enable users to ask questions and receive answers in another language.",
+    "splitPauTitle": [
+      "c watson overview",
+      "Watson language support"
+    ],
+    "pauTitle": "c watson overview : Watson language support",
+    "fileName": "c_watson_overview.doc"
+  },
+  {
+    "pauId": "8E29923263E53248A63B2955DA03DD02",
+    "text": " While Watson is currently English-only, support for additional languages is planned, although no specific timelines have been released. Stay tuned!",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ V3",
+      "What languages can Watson support?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ V3 : What languages can Watson support?",
+    "fileName": "IBM Watson Golden FAQ V3.doc"
+  },
+  {
+    "pauId": "26702B66491620F13D3354AAF15D34",
+    "text": " Cognitive computing systems learn and interact naturally with people to extend what either humans or machines could do on their own. They help humans make better decisions by penetrating the complexity of Big Data. http://www.youtube.com/watch?v=np1sJ08Q7lw.While IBM Watson uses elements of AI such as machine learning, cognitive computing represents an entirely new shift in technology.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Third Set",
+      "What is the difference between Watson and artificial intelligence?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Third Set : What is the difference between Watson and artificial intelligence?",
+    "fileName": "IBM Watson Golden FAQ Third Set.doc"
+  },
+  {
+    "pauId": "26702B66491620F172DBE24059FDC0B9",
+    "text": " Cognitive computing systems learn and interact naturally with people to extend what either humans or machines could do on their own. They help humans make better decisions by penetrating the complexity of Big Data. http://www.youtube.com/watch?v=np1sJ08Q7lw.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Third Set",
+      "What is IBM's definition of cognitive computing?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Third Set : What is IBM's definition of cognitive computing?",
+    "fileName": "IBM Watson Golden FAQ Third Set.doc"
+  },
+  {
+    "pauId": "2F800B6252C55A0685F11E8816EAACC9",
+    "text": " Cognitive computing systems learn and interact naturally with people to extend what either humans or machines could do on their own. They help humans make better decisions by penetrating the complexity of Big Data. http://www.youtube.com/watch?v=np1sJ08Q7lw.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Secondary",
+      "Are there consumer applications of Watson",
+      "What is the value of cognitive computing?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Secondary : Are there consumer applications of Watson : What is the value of cognitive computing?",
+    "fileName": "IBM Watson Golden FAQ Secondary.doc"
+  },
+  {
+    "pauId": "2F800B6252C55A06B9806884B3DB84AA",
+    "text": " Unlike traditional analytics solutions, Watson is a cognitive technology that processes information more like a human than a computer-by understanding natural language, generating hypotheses based on evidence, and learning as it goes. It can learn and interact naturally with people to extend what either humans or machines could do on their own. They help humans make better decisions by penetrating the complexity of Big Data. http://www.youtube.com/watch?v=np1sJ08Q7lw.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Secondary",
+      "Are there consumer applications of Watson",
+      "Why should I consider Watson solutions v traditional analytical solutions?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Secondary : Are there consumer applications of Watson : Why should I consider Watson solutions v traditional analytical solutions?",
+    "fileName": "IBM Watson Golden FAQ Secondary.doc"
+  },
+  {
+    "pauId": "2F800B6252C55A06EDA739ACB7AD8CB2",
+    "text": " Unlike traditional analytics solutions, Watson is a cognitive technology that processes information more like a human than a computer-by understanding natural language, generating hypotheses based on evidence, and learning as it goes. It can learn and interact naturally with people to extend what either humans or machines could do on their own. They help humans make better decisions by penetrating the complexity of Big Data. http://www.youtube.com/watch?v=np1sJ08Q7lw.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Secondary",
+      "Are there consumer applications of Watson",
+      "Why would my business buy Watson?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Secondary : Are there consumer applications of Watson : Why would my business buy Watson?",
+    "fileName": "IBM Watson Golden FAQ Secondary.doc"
+  },
+  {
+    "pauId": "FB6892F41D342DEDD5E888CD046F8B71",
+    "text": " Since the appearance of IBM Watson on Jeopardy in 2011, the use of natural language and cognitive computing has been seen as a shift in how people work with data. Companies are facing expanding data volumes, and looking for faster systems to manipulate, manage and analyze that data, while allowing users to uncover insights and perform analytics at ever increasing speeds. With cognitive computing and natural language, the systems learn and interact with users, and provide the insights and analysis that neither could do on their own.",
+    "splitPauTitle": [
+      "YTL033",
+      "Why is Natural Language Analytics important?"
+    ],
+    "pauTitle": "YTL033 : Why is Natural Language Analytics important?",
+    "fileName": "YTL033.doc"
+  },
+  {
+    "pauId": "D2CA977232ACA362F4373221F178CF76",
+    "text": " Cognitive computing systems learn and interact naturally with people to extend what either humans or machine could do on their own. They help human experts make better decisions by penetrating the complexity of Big Data.",
+    "splitPauTitle": [
+      "IBM Research Cognitive computing",
+      "Cognitive computing and big data"
+    ],
+    "pauTitle": "IBM Research Cognitive computing : Cognitive computing and big data",
+    "fileName": "IBM Research  Cognitive computing.doc"
+  },
+  {
+    "pauId": "B35BEADFC44F44B0FBDA1E095D93D17D",
+    "text": " Cognitive computing systems are designed to learn and interact naturally with people to extend what either humans or machines could do on their own. In essence they imitate some human capabilities such as interpreting language, creating hypotheses and learning. As currently conceived, they are designed to do a lot of the heavy lifting that humans would otherwise undertake to leverage the vast amount of data and knowledge we generate.",
+    "splitPauTitle": [
+      "IBM Watson Explorer and the field of cognitive computing The Big Data Hub",
+      "What do cognitive systems do?"
+    ],
+    "pauTitle": "IBM Watson Explorer and the field of cognitive computing The Big Data Hub : What do cognitive systems do?",
+    "fileName": "IBM Watson Explorer and the field of cognitive computing _ The Big Data Hub.doc"
+  },
+  {
+    "pauId": "2F800B6252C55A06EF47DBAA71068B8B",
+    "text": " The Watson Question Answer API (QAAPI) is available to accepted participants in the Watson Ecosystem. You can apply for the Watson Ecosystem at this link - http://www.ibm.com/smarterplanet/us/en/ibmwatson/ecosystem.html.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Secondary",
+      "Are there consumer applications of Watson",
+      "What APIs are available?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Secondary : Are there consumer applications of Watson : What APIs are available?",
+    "fileName": "IBM Watson Golden FAQ Secondary.doc"
+  },
+  {
+    "pauId": "83C3EFE85308EB5625ABD8599F16EDF",
+    "text": " The extension class must be made available to the QAPI process by using a configuration set parameter and placing it the classpath for the FrontendQAAPI service (the name of the service was FrontendUI in milestone 1). The configuration variable is qa.answer.payload.extension which holds the (package qualified) class name of the class that implements AnswerExtension. For example:<parameter id=\"qa.answer.payload.extension\"<value type=\"string\">com.ibm.deepqa.qaapi.core.questionanswer.payload.example.AnswerExtensionExampleImpl[/value][/parameter]Note: In milestone 1, \"*.qaapi.core.questionanswer.payload.example.AnswerExtensionExampleImpl\" was \"*.frontend.core.questionanswer.payload.AnswerExtensionExampleImpl\"Find the classpath for the FrontendQAAPI process (the name of the service was FrontendUI in milestone 1) by consulting the deployment configuration file described in the production deployment topic.",
+    "splitPauTitle": [
+      "c qapi extension int2",
+      "Specifying the extension class"
+    ],
+    "pauTitle": "c qapi extension int2 : Specifying the extension class",
+    "fileName": "c_qapi_extension_int2.doc"
+  },
+  {
+    "pauId": "9718304B33B06DE8866041E8072CAB3",
+    "text": " Answers that are actually true and are predicted to be true.",
+    "splitPauTitle": [
+      "c ref glossary for corpus",
+      "True positive"
+    ],
+    "pauTitle": "c ref glossary for corpus : True positive",
+    "fileName": "c_ref_glossary_for_corpus.doc"
+  },
+  {
+    "pauId": "8E29923263E53248ABBEF3398DF29B81",
+    "text": " Organizations across industries are in various stages of development and deployment. Public announcements have included USAA, ANZ, and DBS.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ V3",
+      "Is Watson commercialized currently? What companies have launched it?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ V3 : Is Watson commercialized currently? What companies have launched it?",
+    "fileName": "IBM Watson Golden FAQ V3.doc"
+  },
+  {
+    "pauId": "8E29923263E5324867E858935308B500",
+    "text": " Organizations across industries are in various stages of development and deployment. Public announcements have included USAA, ANZ, and DBS.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ V3",
+      "Who uses Watson Engagement Advisor today?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ V3 : Who uses Watson Engagement Advisor today?",
+    "fileName": "IBM Watson Golden FAQ V3.doc"
+  },
+  {
+    "pauId": "9220044F372F52FED27D07C880C7ABA0",
+    "text": " In financial services, industry leaders like USAA and ANZ Bank are in production, running Watson solutions today. Publically announced projects with clients like the Development Bank of Singapore are making tremendous progress. We also announced that we would be kicking off new initiatives with Caixa Bank in Spain and Bumrungrad in Thailand.",
+    "splitPauTitle": [
+      "Taking Watson Global ((R)) A Smarter Planet Blog A Smarter Planet Blog",
+      "How is Watson being used in Financial Services?"
+    ],
+    "pauTitle": "Taking Watson Global ((R)) A Smarter Planet Blog A Smarter Planet Blog : How is Watson being used in Financial Services?",
+    "fileName": "Taking Watson Global \u00ae A Smarter Planet Blog A Smarter Planet Blog.doc"
+  },
+  {
+    "pauId": "26702B66491620F1F44C4C06272F39E",
+    "text": " Organizations across industries are in various stages of development and deployment. Public announcements have included USAA, ANZ, and DBS. IBM Watson is also in development within health care with WellPoint, Memorial Sloan Kettering, and MD Anderson, as well as the Cleveland Clinic with Watson Paths.Additionally, companies such as Fluid Retail, MD Buyline, and WellTok are currently building out Watson applications within the Watson Ecosystem program.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Third Set",
+      "What companies are using Watson?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Third Set : What companies are using Watson?",
+    "fileName": "IBM Watson Golden FAQ Third Set.doc"
+  },
+  {
+    "pauId": "2F800B6252C55A0694B0208A03791018",
+    "text": " Watson's capabilities are delivered as a service so as a result, they have little dependence on the end use platform. Typically, Watson services are embedded into a broader end user application.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Secondary",
+      "Are there consumer applications of Watson",
+      "What platform does Watson work on?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Secondary : Are there consumer applications of Watson : What platform does Watson work on?",
+    "fileName": "IBM Watson Golden FAQ Secondary.doc"
+  },
+  {
+    "pauId": "8E29923263E53248D0818E93E7D20319",
+    "text": " Watson Analytics delivers visualized Big Data insights, based on questions posed in natural language by any business user.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ V3",
+      "What is Watson Analytics?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ V3 : What is Watson Analytics?",
+    "fileName": "IBM Watson Golden FAQ V3.doc"
+  },
+  {
+    "pauId": "617C873D447C11D05FB958FCE95937F7",
+    "text": " IBM Watson is an analytical computing system that specializes in understanding the meaning of questions posed in natural human language and that draws on a broad domain of knowledge to respond quickly.Watson is a cognitive technology that helps augment and scale expertise by processing information more like a human than a computer by understanding natural language -- real language that is not specially designed and encoded just for computers, but language that humans use to capture and communicate knowledge. As it formulates a response, Watson applies advanced analytics to generate hypotheses, weigh and evaluate relevant evidence, and identify the information that is most likely to be useful. See http://www.youtube.com/watch?v=Y_cqBP08yuA.Watson is not a search engine. Search engines become less accurate as more information is introduced to the search. Search engines scan the internet for content; some good, some bad. Search relies on factors such as keywords to bring up thousands of web pages that may - or may not -- hold the answer to what a user is asking. Watson is able to leverage additional information to become increasingly precise. Companies today have an abundance of information, most of it in an unstructured form that is not stored in database rows and columns and is therefore unusable by most traditional computing systems. Watson can help you to extract meaning from big data. See http://www.youtube.com/watch?v=np1sJ08Q7lw.",
+    "splitPauTitle": [
+      "watson history",
+      "What is Watson?"
+    ],
+    "pauTitle": "watson history : What is Watson?",
+    "fileName": "watson_history.doc"
+  },
+  {
+    "pauId": "617C873D447C11D06974193AFAC55E1D",
+    "text": " Watson was created in 2007 when a team of scientists from IBM((R)) Research collaborated with leading universities to create a computer system that could perform well enough on open-domain question answering to compete with champions on Jeopardy!, the quiz show known for its complex and tricky questions. The team dubbed the system Watson as a tribute to the founder of the International Business Machines Corporation, Thomas J. Watson.In February 2011, the team realized their goal and exceeded expectations when Watson appeared on Jeopardy! and beat the two highest ranked players in a two-game match. The competition was the ultimate test of the machine's capabilities because it relied on many human cognitive abilities that are traditionally considered to be beyond the capability of computers, such as:- Discern double meanings of words, puns, rhymes, and inferred hints.- Respond rapidly.- Process vast amounts of information to make complex and subtle logical connections.For the Watson team, replicating these capabilities was an enormous challenge, because it moved beyond keyword searches and queries of structured data to accessing and assessing a vast amount of unstructured data to find the best answers. IBM knew that the solution to this challenge had the potential to change the way businesses use information and make decisions. And the transformation has begun.",
+    "splitPauTitle": [
+      "watson history",
+      "What is Watson?",
+      "History"
+    ],
+    "pauTitle": "watson history : What is Watson? : History",
+    "fileName": "watson_history.doc"
+  },
+  {
+    "pauId": "A4C42B5752C8A88961AD0A0A508FA4E8",
+    "text": " You can explore interactive visual representations of relationships for keyword queries in IBM Watson Discovery Advisor.- Use a visual network in IBM Watson Discovery Advisor to discover and explore relationships or affinity between keyword terms in your query and other terms in the source documents.- Use a co-occurrence table in IBM Watson Discovery Advisor to discover and explore potential relationships between different types of terms.",
+    "splitPauTitle": [
+      "hep c viz",
+      "Visualizations"
+    ],
+    "pauTitle": "hep c viz : Visualizations",
+    "fileName": "hep_c_viz.doc"
+  },
+  {
+    "pauId": "82B8E6013CE69E403D82B692BFBED601",
+    "text": " Watson Discovery Advisor is an application that researchers can use to find patterns and discover connections within a large data set.The typical research process is time-consuming and expensive. Watson Discovery Advisor enables research teams to scale and accelerate the pace of research breakthroughs by discovering and exposing previously unknown connections within large collections of unstructured data. Instead of having to individually read through volumes of material and manually track interesting patterns, researchers can use Watson Discovery Advisor to much more quickly digest the available information and automatically uncover these patterns. Watson Discovery Advisor can help researchers significantly reduce the time that is required to advance their work.",
+    "splitPauTitle": [
+      "help c wda overview",
+      "Product overview"
+    ],
+    "pauTitle": "help c wda overview : Product overview",
+    "fileName": "help_c_wda_overview.doc"
+  },
+  {
+    "pauId": "82B8E6013CE69E4032181B6317247E96",
+    "text": " To get started, send a question or a keyword query to Watson. The results of your query are displayed in various formats, such as evidence passages, hypotheses, or visualizations of related data points. You can then drill down to explore additional details or formulate and test new and interesting hypotheses of your own.- Submit a query to Watson and explore the results.- Start your discovery and research process in IBM Watson Discovery Advisor by formulating a query.- Use the query filtering capabilities in IBM Watson Discovery Advisor to modify the result set.- You can clarify the meaning of potentially ambiguous terms in your query so that your results are more accurate.- Watson identifies and uses common synonyms for query terms. You can add or remove synonyms to broaden or narrow the result set.- Watson finds and displays passages from source documents that are related to your query. You can explore these passages to learn more about your query.- Watson finds terms that are related to terms in your query by performing various statistical analyses. You can work with related terms to explore new discovered relationships and use these terms to modify the query results.- You can explore interactive visual representations of relationships for keyword queries in IBM Watson Discovery Advisor.- The Life Sciences experimental applications are designed specifically to find and illustrate meaningful information and patterns within the data in scientific documents.- Search for chemical that are the same or similar to a compound that you specify.- Narrow the set of scientific articles that were returned from a previous search by adding more criteria that the documents must meet before they are displayed.- The application returns only results that it is confident match the query. You can choose to include results that fall outside the default standards.- Many of the applications help you find articles that contain information that can aid you in your research.- Uncover hidden interactions among drugs, targets, and diseases.",
+    "splitPauTitle": [
+      "help c wda overview",
+      "Getting started with Watson Discovery Advisor"
+    ],
+    "pauTitle": "help c wda overview : Getting started with Watson Discovery Advisor",
+    "fileName": "help_c_wda_overview.doc"
+  },
+  {
+    "pauId": "E255412C3CC9E1788113162FB1305BA6",
+    "text": " Watson finds terms that are related to terms in your query by performing various statistical analyses. You can work with related terms to explore new discovered relationships and use these terms to modify the query results.If you enter a keyword query in IBM Watson Discovery Advisor, the results include a list of terms that are related to the terms in your current query. Watson discovers these terms to help you quickly find interesting new relationships that you might not have discovered on your own. You can click each related term in the list to add it to your query and explore the modified results.For example, you might submit a query to explore a known or proposed relationship between two query terms, such as John Doe, New York City.Watson discovers and displays terms that are significantly related to these query terms, but are not part of the original query - for example: San Francisco or Jane Doe. These terms might represent new and interesting information or relationships that you can use to continue your investigation. Click each related term to add the term to the query and resubmit the query.",
+    "splitPauTitle": [
+      "help c relterms",
+      "Related terms"
+    ],
+    "pauTitle": "help c relterms : Related terms",
+    "fileName": "help_c_relterms.doc"
+  },
+  {
+    "pauId": "FF9277197A72BB71F6FE73A50A542EE6",
+    "text": " Watson Discovery Advisor is a research assistant that helps researchers collect information and synthesize insights to stay updated on recent findings and share information with colleagues.Watson Engagement Advisor: A configuration of the Watson platform optimized.",
+    "splitPauTitle": [
+      "IBM ThinkAcademy Watson ConversationGuide",
+      "What is Watson Discovery Advisor?"
+    ],
+    "pauTitle": "IBM ThinkAcademy Watson ConversationGuide : What is Watson Discovery Advisor?",
+    "fileName": "IBM_ThinkAcademy_Watson_ConversationGuide.doc"
+  },
+  {
+    "pauId": "F09AC2FD13992296ACD8EAB86B2815B9",
+    "text": " Watson Discovery Advisor is an application that researchers can use to find patterns and discover connections within a large data set.The Discovery Advisor is not a traditional question answering application. Rather, the goal of the Discovery Advisor is to return passages from the knowledge base that serve as evidence for the top answers to a question, and to enable those passages to be explored. A researcher can delve further into the knowledge base by proposing an alternate answer that he knows or that he finds within a returned passage. When the alternate answer is submitted to Watson evidence passages that relate to both the original question and the asserted answer are returned. By repeating this process, the researcher can chain together a series of passages that support a line of inquiry, in effect enabling him to test a hypothesis or formulate a new one.",
+    "splitPauTitle": [
+      "c watson discovery advisor",
+      "IBM Watson Discovery Advisor"
+    ],
+    "pauTitle": "c watson discovery advisor : IBM Watson Discovery Advisor",
+    "fileName": "c_watson_discovery_advisor.doc"
+  },
+  {
+    "pauId": "8E29923263E532488C577CEF6F78ABB0",
+    "text": " IBM Watson can work with non-obvious relationships through Watson Discovery Advisor, where:1) A wealth of evidence exists but there is no single answer that is documented in literature.2) Users are more interested in navigating through underlying evidence than finding any one existing answer.3) Users need to quickly explore non-obvious relationships to catalyze discovery.4) Users want to consider multiple related domains to cross pollinate discovery with their existing field.5) Users need alerts to the latest information that can impact their past conclusions.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ V3",
+      "Does Watson detect non-obvious relationships?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ V3 : Does Watson detect non-obvious relationships?",
+    "fileName": "IBM Watson Golden FAQ V3.doc"
+  },
+  {
+    "pauId": "2F800B6252C55A0656F5DEC1F972C2DA",
+    "text": " Watson solutions are powered by massively parallel Power hardware and are offered as a service through the cloud for greater elasticity and scalability. They can be accessed by many simultaneous users through their choice of devices like smart phones and tablets.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Secondary",
+      "Are there consumer applications of Watson",
+      "How big is Watson?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Secondary : Are there consumer applications of Watson : How big is Watson?",
+    "fileName": "IBM Watson Golden FAQ Secondary.doc"
+  },
+  {
+    "pauId": "2F800B6252C55A0653D26AB8CA77C739",
+    "text": " Watson solutions are powered by massively parallel Power hardware and are offered as a service through the cloud for greater elasticity and scalability. They can be accessed by many simultaneous users through their choice of devices like smart phones and tablets.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ Secondary",
+      "Are there consumer applications of Watson",
+      "What is the infrastructure behind Watson?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ Secondary : Are there consumer applications of Watson : What is the infrastructure behind Watson?",
+    "fileName": "IBM Watson Golden FAQ Secondary.doc"
+  },
+  {
+    "pauId": "8E29923263E5324815B75E8B8B3A678E",
+    "text": " Watson solutions are powered by massively parallel Power hardware and are offered as a service through the cloud for greater elasticity and scalability. They can be accessed by many simultaneous users through their choice of devices like smart phones and tablets.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ V3",
+      "I understand Watson is hosted, but is there an on-premise version?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ V3 : I understand Watson is hosted, but is there an on-premise version?",
+    "fileName": "IBM Watson Golden FAQ V3.doc"
+  },
+  {
+    "pauId": "8E29923263E53248B74EA9BC5DB5001",
+    "text": " Watson solutions are powered by massively parallel Power hardware and are offered as a service through the cloud for greater elasticity and scalability. They can be accessed by many simultaneous users through their choice of devices like smart phones and tablets.",
+    "splitPauTitle": [
+      "IBM Watson Golden FAQ V3",
+      "What does Watson run on?"
+    ],
+    "pauTitle": "IBM Watson Golden FAQ V3 : What does Watson run on?",
+    "fileName": "IBM Watson Golden FAQ V3.doc"
+  }
+]

@@ -1,0 +1,10 @@
+
+@import 'flexbox';
+
+@mixin transitions($prop, $dur, $func){
+	transition: $prop $dur, $func;
+	-webkit-transition: $prop $dur, $func;
+	-moz-transition: $prop $dur, $func;
+	-ms-transition: $prop $dur, $func;
+	-o-transition: $prop $dur, $func;
+}

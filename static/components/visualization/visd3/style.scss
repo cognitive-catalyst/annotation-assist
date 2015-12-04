@@ -1,0 +1,223 @@
+@import 'static/sass/globals/variables';
+
+
+
+.display{
+    h4{
+    font-size:19px;
+    font-weight:100;
+    color:$pale-orange;
+    }
+    h3{
+        font-size: 22px;
+        font-weight:100;
+        color:$pale-orange;
+    }
+
+    display:flex;
+    flex:1;
+    justify-content:center;
+    .chart {
+        display:flex;
+        flex-direction: column;
+        align-items: center;
+        // margin-top: 50px;
+        flex:2;
+        text{
+            fill:white;
+        }
+
+        .learn-more{
+            color:$pale-orange;
+            text-decoration: none;
+
+            &:hover{
+                opacity:0.5;
+            }
+        }
+
+        .d3{
+
+            .domain{
+                fill: none;
+            }
+            path {
+                stroke-width: 2;
+
+            }
+            .chart_title{
+                font-weight:100;
+                text-anchor:middle;
+                font-size:24px;
+                font-size: 2vw;
+            }
+            .axis path,
+            .axis line {
+                stroke: white;
+                stroke-width: 2;
+                shape-rendering: crispEdges;
+            }
+            .tick line{
+                stroke: white;
+                stroke-width:1px;
+                stroke-dasharray:10;
+                opacity: 0.7;
+            }
+            circle{
+                fill-opacity:0;
+                stroke-width:3;
+                stroke-dasharray:1;
+            }
+
+            .line_invisible{
+                stroke:yellow;
+                stroke-width: 6;
+                fill:none;
+                opacity: 0;
+            }
+
+            .interval{
+                opacity:0.3;
+            }
+        }
+    }
+    .control-panel {
+        flex:1;
+        min-width:130px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        width: 20%;
+        position: relative;
+
+        .section{
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            text-align:center;
+            margin-bottom:10px;
+            width:100%;
+
+            .chart-option{
+                display:flex;
+                margin-top:5px;
+
+                input{
+                    display:block;
+                }
+
+                .option-label{
+                    color:$pale-orange;
+                }
+
+                .conf-int{
+                    margin-right:5px;
+                }
+            }
+
+            .conf-row{
+                display:flex;
+                align-items:center;
+                .arrow-up {
+                    cursor:pointer;
+                    width: 0;
+                    height: 0;
+                    border-left: 7px solid transparent;
+                    border-right: 7px solid transparent;
+
+                    border-bottom: 10px solid $pale-orange;
+                }
+                .arrow-down {
+                    cursor:pointer;
+                    width: 0;
+                    height: 0;
+                    border-left: 7px solid transparent;
+                    border-right: 7px solid transparent;
+                    border-top: 10px solid $pale-orange;
+                }
+            }
+
+            .header {
+                color:white;
+                margin: 0px;
+            }
+
+            .value {
+                margin: 0px 5px;
+            }
+
+            .slider {
+                min-height: 6px;
+                width:75%;
+                border: solid 1px #ccc;
+                border-top-color: #aaa;
+                border-radius: 4px;
+                background-color: $pale-orange;
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+            }
+
+            .handle {
+                width: 14px;
+                height: 14px;
+                border: solid 1px #aaa;
+                position: absolute;
+                border-radius: 10px;
+                background-color: #fff;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                top: -5px;
+            }
+        }
+    }
+}
+
+.line0{
+    stroke:$blue-light;
+    fill:$blue-light;
+    color:$blue-light;
+}
+.line1{
+    stroke:$watson-teal-accent;
+    fill:$watson-teal-accent;
+
+    color:$watson-teal-accent;
+
+}
+.line2{
+    stroke:$watson-blue-accent;
+    color:$watson-blue-accent;
+
+}
+.line3{
+    stroke:$watson-green;
+    color:$watson-green;
+}
+
+.main_line{
+    fill: none;
+}
+
+.zoom {
+  stroke:$pale-orange;
+  stroke-width:1;
+}
+
+.test {
+    background:red;
+    fill: red;
+    stroke-width: 2;
+    stroke:$watson-blue-accent;
+}
+
+#reset{
+    cursor:pointer;
+    rect{
+        fill-opacity:0.5;
+        fill:$pale-orange;
+        stroke-width:2;
+        stroke:white;
+    }
+    .text{
+        // fill-opacity:0;
+        fill:$watson-white;
+    }
+}

@@ -1,0 +1,57 @@
+
+.header {
+	@include flexbox;
+	@include justify-content(space-between);
+	// padding: 30px 0px;
+	margin-bottom:50px;
+
+	.logo {
+		@include flexbox;
+		@include flex-direction(row);
+		@include align-items(center);
+		width: 500px;
+		img {
+			width: 80px;
+			height: 80px;
+		}
+
+		span {
+			color: white;
+			font-size: 2rem;
+		}
+	}
+
+	.nav {
+		ul {
+			@include flexbox;
+			@include justify-content(space-between);
+			margin: 0;
+
+			li {
+				list-style-type: none;
+				font-size: 30px;
+				color: white;
+				cursor: pointer;
+
+			    a {
+			    	display:flex;
+			    	color: white;
+			    	text-decoration: none;
+
+			    	span{
+			    		transition: background 0.5s ease;
+			    		padding: 25px 20px;
+			    		&.active {
+				    		background: white;
+				    		color: #000;
+				    	}
+			    	}
+			    }
+
+			    &:last-child{
+			    	padding-right: 0;
+			    }
+			}
+		}
+	}
+}

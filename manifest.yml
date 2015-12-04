@@ -1,0 +1,12 @@
+applications:
+- disk_quota: 256M
+  host: wpef-question-store
+  name: wpef-question-store
+  command: python server.py
+  path: .
+  instances: 1
+  memory: 1024M
+  domain: mybluemix.net
+  buildpack: https://github.com/cloudfoundry/python-buildpack#v1.3.5
+  services:
+    - Cloudant NoSQL DB-yl
