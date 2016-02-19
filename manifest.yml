@@ -5,7 +5,7 @@ applications:
   command: python server.py
   path: .
   instances: 1
-  memory: 1024M
+  memory: 256M
   domain: mybluemix.net
   buildpack: https://github.com/cloudfoundry/python-buildpack#v1.3.5
   services:
