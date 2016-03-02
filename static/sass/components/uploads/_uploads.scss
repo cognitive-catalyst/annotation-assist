@@ -12,6 +12,10 @@
       align-items: center;
       width: 100%;
 
+      .system-name {
+          padding: 12;
+      }
+
         .btn-container {
           display: flex;
           justify-content: space-between;
@@ -26,6 +30,8 @@
             .upload_file {
                 display: none;
             }
+
+
 
             .filename {
                 display: flex;

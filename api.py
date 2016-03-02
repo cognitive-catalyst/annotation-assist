@@ -1,6 +1,6 @@
 from flask import Flask, request, Blueprint, send_file, Response
 
-import pandas as pd
+import csv
 import os
 import json
 import StringIO
@@ -11,95 +11,60 @@ import ConfigParser
 import math
 
 blueprint = Blueprint("api", __name__)
-
 config = ConfigParser.ConfigParser()
 config.read('properties.ini')
 
 
-try:
-    vcap = json.loads(os.getenv('VCAP_SERVICES'))
-
-except:
-    vcap = {
-        "cloudantNoSQLDB": [
-            {
-                "credentials": {
-                    "url": config.get('properties', 'cloudant_auth_url')
-                }
-            }
-        ]
-    }
-
-db_creds = vcap['cloudantNoSQLDB'][0]['credentials']
-
-
-def format_date(initial_format):
-    return time.mktime(datetime.datetime.strptime(initial_format, "%Y-%m-%d").timetuple())
-
-check_start_time = lambda timearg: 0 if timearg == '0' else format_date(timearg)
-check_end_time = lambda timearg: time.time() if timearg == '0' else format_date(timearg)
-
-
 @blueprint.route('/delete_db', methods=['POST'])
 def delete():
-    db_ops.delete(db_creds)
+    db_ops.delete_all()
     return 'done'
 
 
 @blueprint.route('/upload', methods=['POST'])
 def upload():
     data = request.files['data']
-    if data:
-        filename = data.filename
-        name, ext = os.path.splitext(filename)
-        if ext not in ['.csv']:
-            return Response(json.dumps({'message': 'Invalid File Type'}), status=400)
-        db_ops.upload_docs(db_creds, data.read())
+    system_name = request.form['system-name']
+    filename = data.filename
+    name, ext = os.path.splitext(filename)
+    if ext not in ['.csv']:
+        return Response(json.dumps({'message': 'Invalid File Type'}), status=400)
+
+    db_ops.upload_questions(system_name, data)
     return Response(json.dumps({'message': 'Upload Successful'}), status=200)
 
 
 @blueprint.route('/get_question', methods=["POST", "GET"])
 def annotate():
-    st = check_start_time(request.form['start_time'])
-    et = check_end_time(request.form['end_time'])
+    system_name = request.form['system_name']
+    print system_name
+    question_data = db_ops.get_question(system_name)
+    return json.dumps(question_data)
 
-    questions = db_ops.get_question(db_creds, st, et)
-    return json.dumps(questions)
+
+@blueprint.route('/get_systems', methods=["POST", "GET"])
+def get_systems():
+    systems = db_ops.get_systems()
+    print {'systems': systems}
+    return json.dumps({'systems': systems})
 
 
 @blueprint.route('/topic', methods=["POST", "GET"])
 def topic():
     question_id = request.form['_id']
-    on_topic = request.form['on_topic']
-    if(on_topic):
+    is_on_topic = request.form['on_topic']
+    if(is_on_topic) == 'true':
+        is_on_topic = True
         human_performance = request.form['human_performance']
     else:
-        human_performance = "null"
-    db_ops.update_question(db_creds, question_id, on_topic, human_performance)
+        is_on_topic = False
+        human_performance = 0
+    db_ops.update_question(question_id, is_on_topic, human_performance)
     return 'done'
 
 
-def _get_gt(form):
-    try:
-        st = check_start_time(form['start_time'])
-        et = check_end_time(form['end_time'])
-    except:
-        st = 0
-        et = time.time()
-
-    if et == 0:
-        et = time.time()
-
-    payload = {"annotated_good": ("annotated_good" in form.keys()),
-               "annotated_bad": ("annotated_bad" in form.keys()),
-               "off_topic": ("off_topic" in form.keys()),
-               "st": st,
-               "et": et,
-               "threshold": 70}
-
-    print payload
-
-    return db_ops.get_gt(db_creds, payload)
+def _get_gt(system_name):
+    return db_ops.export_annotated(system_name)
 
 
 @blueprint.route('/get_all_gt', methods=["POST", "GET"])
@@ -121,33 +86,24 @@ def get_all_gt():
 
 @blueprint.route('/export_gt', methods=["POST", "GET"])
 def export_gt():
-
-    jr = _get_gt(request.form)
-
-    df = pd.DataFrame(columns=['question', 'PAU', 'answer', 'on_topic', "confidence", "judgement", "datetime"])
-
-    for index, doc in enumerate(jr):
-        if 'PAU' not in doc:
-            doc['PAU'] = ""
-        if 'queryTime' not in doc:
-            doc['queryTime'] = ''
-        # df.loc[index] = [doc['question'].encode('ascii', 'ignore'), doc['PAU'], doc['answer'].encode('ascii', 'ignore'), doc['on_topic'], doc["confidence"], doc["judgement"]]
-        df.loc[index] = [doc['question'].encode('utf-8'), doc['PAU'], doc['answer'].encode('utf-8'), doc['on_topic'], doc["confidence"], doc["judgement"], doc["queryTime"]]
+    print request.form['system-name']
+    gt = db_ops.export_annotated(request.form['system-name'])
 
     buf = StringIO.StringIO()
-    df.to_csv(buf, index=None)
+    headers = gt[0].keys()
+    f = csv.DictWriter(buf, fieldnames=headers)
+    f.writeheader()
+    f.writerows(gt)
     buf.seek(0)
+
     return send_file(buf, as_attachment=True, attachment_filename='new_ground_truth.csv')
 
 
 @blueprint.route('/get_percent', methods=["POST", "GET"])
 def get_percent():
-    st = check_start_time(request.form['start_time'])
-    et = check_end_time(request.form['end_time'])
-    if et == 0:
-        et = time.time()
+    system_name = request.form['system_name']
 
-    return str(db_ops.percent(db_creds, st, et) * 100)
+    return str(db_ops.get_percent(system_name))
 
 
 @blueprint.route('/get_purview_qs', methods=["GET"])

@@ -6,7 +6,8 @@ Form = React.createClass({
 
     getInitialState: function() {
         return {
-            gt_box: false
+            gt_box: false,
+
         };
     },
 
@@ -16,13 +17,24 @@ Form = React.createClass({
         this.setState({gt_box:gt_box.checked});
     },
 
+    handleSubmit: function(e){
+        e.preventDefault();
+
+        var form = React.findDOMNode(this.refs.form);
+        form.submit();
+        // var fData = new FormData(form);
+
+        // this.props.onSubmit(fdata)
+
+    },
+
     render: function() {
         return (
             <div className="buttons">
-                <form className="exportForm" action={this.props.loc} method="post">
+                <form className="exportForm" action={this.props.loc} method='post' ref='form'>
 
                     <div className="checks">
-                        <h3> Select the questions you would like to export </h3>
+                        <h3> Select the questions you would like to export! </h3>
 
                         <div className="check-wrapper">
                             <input className="check" type="checkbox" name="annotated_good" value="annotated_good" defaultChecked/>
@@ -37,10 +49,9 @@ Form = React.createClass({
                             <span>Out of Purview Questions</span>
                         </div>
                     </div>
-                    <input type="hidden" name="start_time" value={this.props.start_time} />
-                    <input type="hidden" name="end_time" value={this.props.end_time} />
-                    <input type="hidden" name="threshold" value={this.props.threshold} />
-                    <input className='button' type="submit" value={this.props.val} />
+                    <input type='hidden' name='system-name' value={this.props.system} />
+
+                    <input className='button' type="submit" value="Download" />
                 </form>
             </div>
         );

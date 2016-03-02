@@ -3,6 +3,9 @@ var
 React = require('react'),
 Header = require('../header'),
 Thinking = require('../watson-thinking'),
+$ = require('jquery'),
+ui = require('jquery-ui'),
+ui_style = require('jquery-ui/themes/smoothness/jquery-ui.css'),
 
 Upload = React.createClass({
 
@@ -23,9 +26,10 @@ Upload = React.createClass({
     getInitialState: function() {
         return {log_uri : "No File Found",
                 trying_to_delete: false,
-                upload_status:"not started"
-               };
+                upload_status:"not started",
+                systems:[]};
     },
+
 
     handleLogFile: function(e) {
         var self = this;
@@ -39,8 +43,18 @@ Upload = React.createClass({
             });
         }
 
-    reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+    },
 
+    getSystems: function(){
+        $.ajax({
+            url: '/api/get_systems',
+            type: "GET",
+            success: function(resp) {
+                var systems = JSON.parse(resp).systems;
+                this.setState({systems:systems});
+            }.bind(this)
+        })
     },
 
     handleSubmit: function(e) {
@@ -48,11 +62,8 @@ Upload = React.createClass({
 
         this.setState({upload_status:'started'});
 
-        var fData = new FormData(React.findDOMNode(this.refs.form));
-
-        console.log(fData)
-        console.log($("#file")[0].files[0])
-
+        var form = React.findDOMNode(this.refs.form);
+        var fData = new FormData(form);
         var xhr = new XMLHttpRequest();
 
         xhr.open("POST", '/api/upload', true);
@@ -60,6 +71,8 @@ Upload = React.createClass({
             if (xhr.readyState==4){
                 if (xhr.status == 200) {
                     this.setState({upload_status:'complete'});
+
+                    form.reset()
                 }
                 else{
                     this.setState({upload_status:'failed'});
@@ -69,6 +82,10 @@ Upload = React.createClass({
         }.bind(this);
 
         xhr.send(fData);
+    },
+
+    componentDidMount: function() {
+          this.getSystems();
     },
 
     render: function() {
@@ -83,13 +100,19 @@ Upload = React.createClass({
             second_button = {display: 'none'};
         }
 
+        var sys = $( "#system-name" );
+        sys.autocomplete({
+          source: this.state.systems
+        });
+
         return (
             <div className='container'>
                 <div className='uploads'>
                     <p>Upload QuestionsData.csv</p>
                     <form className="upload_form" method="post" action="/api/upload" encType="multipart/form-data" ref='form' onSubmit={this.handleSubmit} >
-                        <input type="hidden" name="gt" value="Logs"/>
                         <div className="btn-container">
+                            <input id='system-name' placeholder="Select System Name" className='system-name' type="text" name= "system-name" ref='sys_name' required/>
+
                             <label className="btn">Choose File
                                 <input id="file" className="upload_file" type="file" onChange={this.handleLogFile} name="data" required/>
                             </label>
