@@ -100,16 +100,15 @@ a machine learning system.
 4. Modify the manifest.yml to uniquely name the service you want to create (change the hostname and name)
 
 5. Login to your bluemix accound from the command line
-    cf api https://api.ng.bluemix.net
-    cf login -u <ibmer>@us.ibm.com -o <ibmer>@us.ibm.com -s dev
+    `cf api https://api.ng.bluemix.net`
+    `cf login -u <ibmer>@us.ibm.com -o <ibmer>@us.ibm.com -s dev`
 
 6. Add the sqldb service
-    cf create-service sqldb sqldb_free my_database
+    `cf create-service sqldb sqldb_free my_database`
 
 
 7. Build and push the annotation assist app to your bluemix space
-    npm install && npm run build
-    cf push
+    `npm install && npm run build && cf push` 
 
 **Note**
 If you do not have npm installed on your local machine as a global module, you need
@@ -125,7 +124,7 @@ at the node website: https://nodejs.org/en/
 
 # Things we plan on working toward in the future/ aka possible extensions
 
-* Integrate a way to export inputs to Rank and Retrieve system from annotations in database
+* Intergrate a way to export inputs to Rank and Retrieve system from annotations in database
 * Add user IDs, and authorized only access to database upload screen
 
 # licence
