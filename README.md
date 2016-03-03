@@ -40,19 +40,6 @@ headers (please match exact string):
 Please note that the "TopAnswer" string is an artifact of the WEA 
 export column names, and 
 
-### Optional
-If you are using the optional WEA integration, you must also load in the
-following files (before the system log files that contain the q/a pairs):
-* json format of all the Possible Answer Units (pau.json).  This export
-  requires a tool developed by the Ecosystem team, please get in touch
-  with your IBM owner of your WEA instance to get this export file.
-* ground truth of the WEA instance, exported as a csv file with the 
-  following cols:
-    * QUESTION_ID  
-    * QUESTION   
-    * ANS_LONG   
-    * IS_ON_TOPIC
-
 
 ANNOTATE
 --------
@@ -63,12 +50,7 @@ will be presented with the
 
 * Query as typed by the user
 
-then, if the query and answer is already contained in the approved 
-annotation list (aka Ground Truth)
-
-* Query and answer is silently marked as a "perfect" answer
-
-or, if the query response is mapped to an answer that has a cluster
+if the query response is mapped to an answer that has a cluster
 associated with ground truth, and the confidence is above x% the human
 will be presented with
 
@@ -109,55 +91,11 @@ a machine learning system.
 
 1. Create a bluemix account
 
-2. Create your app: 
-    * Go to your bluemix dashboard and Create Cloud Foundry app
-    * choose web    
-    * choose python / .py
-    * select continue
-    * name your app something unique to your project, this will 
-      be part of the URL to access the service on bluemix
-      <uname>
-
-    * your app now has the URL http://<uname>.mybluemix.net
-
-3. Add your own database to the project to store your data
-    * Go to the <uname> app overview page in your bluemix account
-    * Select + Add service or API
-    * Under 'Data and Analytics', select the Cloundant noSQL DB 
-    * On the right, there should be a "Add Service" pane, 
-      copy the service name, eg, 
-        Cloudant NoSQL DB-xx
-      for use in the manifest.yml file in the next steps
-    * Select "Use"
-    * You can now view the cloudant noSQL db credentials on your 
-      bluemix project <uname> overview page
-    * Select the Cloudant service from the overview page, and then select "Launch"
-    * You are now in the Cloudant dashboard.  Select "+ Add new Database" from 
-      the upper right hand corner, and call it "questionstore"
-
 5. Get a local copy of the annotation assist code 
     * clone git repo https://github.com/cognitive-catalyst/annotation-assist
 
 
 6. Change the properties.ini
-
-### Mandatory
-
-    cloudant_auth_url
-    
-to the URL in the cloudant noSQL db credentials 
-
-
-### Optional
-
-    wea_url (eg https://watson.ihost.com/instance/115/predeploy/$14a5358a85f/wcea/api/GroundTruth/paus/)
-
-to reflect your instance number (115 in this example) and project id ($14a5358a85f in this example)
-
-    wea_username
-    wea_password 
-
-to match the wea username and password you use to login to your xmgr
 
 7. Modify the manifest.yml to use the name of the service you want to create 
    host: <uname>
@@ -183,7 +121,7 @@ Optionally, if you have the cf environment installed on your local machine, from
 
     cf api https://api.ng.bluemix.net
     cf login -u <ibmer>@us.ibm.com -o <ibmer>@us.ibm.com -s dev
-    cf push <uname> -m 512m
+    cf push 
 
 wait while bluemix preps your environment, this may take ~15 mins
 (note: I had to run this command twice before it worked)
