@@ -8,7 +8,7 @@ app = Flask(__name__, template_folder='.')
 app.register_blueprint(api.blueprint, url_prefix='/api')
 
 config = ConfigParser.ConfigParser()
-config.read('properties.ini')
+config.read('config/properties.ini')
 
 
 def check_auth(username, password):

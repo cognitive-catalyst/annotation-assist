@@ -12,7 +12,7 @@ import math
 
 blueprint = Blueprint("api", __name__)
 config = ConfigParser.ConfigParser()
-config.read('properties.ini')
+config.read('config/properties.ini')
 
 
 @blueprint.route('/delete_db', methods=['POST'])

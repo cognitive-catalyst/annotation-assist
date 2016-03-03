@@ -3,7 +3,7 @@ import csv
 import ibm_db
 import ibm_db_dbi
 import datetime
-import re
+import os
 
 # TODO: export gt needs to consider the checkbox variables
 
@@ -13,16 +13,8 @@ try:
 
 
 except:
-    credentials = {
-        "hostname": "75.126.155.153",
-        "password": "iVBdrJ25HDId",
-        "port": 50000,
-        "host": "75.126.155.153",
-        "jdbcurl": "jdbc:db2://75.126.155.153:50000/SQLDB",
-        "uri": "db2://user15108:iVBdrJ25HDId@75.126.155.153:50000/SQLDB",
-        "db": "SQLDB",
-        "username": "user15108"
-    }
+    with open('config/credentials.json', 'r') as f:
+        credentials = json.loads(f.read())['credentials']
 
 
 table_names = ["Systems", "Uploads", "Questions"]
@@ -266,6 +258,10 @@ def update_question(question_id, is_on_topic, human_performance_rating=0):
 
 def upload_questions(system_name, file):
     '''Upload the questions in the file and link them to the given system'''
+    try:
+        init_database()
+    except:
+        pass
     upload_id = _add_upload(system_name)
     reader = csv.DictReader(file)
 

@@ -52,6 +52,7 @@ Upload = React.createClass({
             type: "GET",
             success: function(resp) {
                 var systems = JSON.parse(resp).systems;
+                console.log(systems)
                 this.setState({systems:systems});
             }.bind(this)
         })
@@ -105,19 +106,27 @@ Upload = React.createClass({
           source: this.state.systems
         });
 
+        console.log(this.state.upload_status)
         return (
             <div className='container'>
                 <div className='uploads'>
                     <p>Upload QuestionsData.csv</p>
                     <form className="upload_form" method="post" action="/api/upload" encType="multipart/form-data" ref='form' onSubmit={this.handleSubmit} >
                         <div className="btn-container">
-                            <input id='system-name' placeholder="Select System Name" className='system-name' type="text" name= "system-name" ref='sys_name' required/>
+                            <input id='system-name' placeholder="Select System Name" className='system-name' type="text" name= "system-name" ref='sys_name' autoComplete='off' required/>
 
                             <label className="btn">Choose File
-                                <input id="file" className="upload_file" type="file" onChange={this.handleLogFile} name="data" required/>
+                                <input className="upload_file" type="file" onChange={this.handleLogFile} name="data" required/>
                             </label>
-                            {(() => {
-                                switch(this.state.upload_status) {
+
+                            <span className="filename" style={{display: this.state.upload_status == 'not started' ? '':'none'}}>{this.state.log_uri}</span>
+                            <img className="loading" style={{display: this.state.upload_status == 'started' ? '':'none'}} src='static/img/watson-thinking-white.svg'/>
+                            <span className="filename" style={{display: this.state.upload_status == 'complete' ? '':'none'}} >&#10003; Upload Succeeded</span>
+                            <span className="filename" style={{display: this.state.upload_status == 'failed' ? '':'none'}}>&#10007; Upload Failed</span>
+
+
+                            {/**(() => {
+                                switch(this.state.uploads_status) {
                                     case 'not started':
                                         return (<span className="filename" >{this.state.log_uri}</span>)
                                     case 'started':
@@ -126,18 +135,16 @@ Upload = React.createClass({
                                         return (<span className="filename" >&#10003; Upload Succeeded</span>)
                                     case 'failed':
                                         return (<span className="filename" >&#10007; Upload Failed</span>)
-                                    default:
-                                        return 'no match'
                                 }
-                            })()}
+                            })()*/}
                             <input className="btn" type="submit" value="Submit" />
                         </div>
                     </form>
 
                     <p>Note: You may upload multiple QuestionsData.csv files as you wish</p>
                     <div className="btn-container">
-                     <label className='btn' style={first_button} onClick={this.wantsToDelete.bind(this)}>Delete Database</label>
-                     <label className='btn' style={second_button} onClick={this.deleteDB.bind(this)}>Are You Sure? This Cannot Be Undone.</label>
+                     <label className='btn' style={first_button} onClick={this.wantsToDelete}>Delete Database</label>
+                     <label className='btn' style={second_button} onClick={this.deleteDB}>Are You Sure? This Cannot Be Undone.</label>
                     </div>
                 </div>
             </div>
