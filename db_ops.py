@@ -4,17 +4,22 @@ import ibm_db
 import ibm_db_dbi
 import datetime
 import os
+import ConfigParser
+
 
 # TODO: export gt needs to consider the checkbox variables
 
-try:
-    vcap = json.loads(os.getenv('VCAP_SERVICES'))
-    credentials = vcap['sqldb'][0]['credentials']
+# try:
+#     vcap = json.loads(os.getenv('VCAP_SERVICES'))
+#     credentials = vcap['sqldb'][0]['credentials']
 
 
-except:
-    with open('config/credentials.json', 'r') as f:
-        credentials = json.loads(f.read())['credentials']
+# except:
+#     with open('config/credentials.json', 'r') as f:
+#         credentials = json.loads(f.read())['credentials']
+
+config = ConfigParser.ConfigParser()
+config.read('config/properties.ini')
 
 
 table_names = ["Systems", "Uploads", "Questions"]
@@ -280,11 +285,11 @@ def execute_cmd(cmd, fetch_results=False):
 
 
 def connect_to_db():
-    db = credentials['db']
-    hostname = credentials['hostname']
-    port = str(credentials['port'])
-    user = credentials['username']
-    pw = credentials['password']
+    db = config.get('db2', 'db')
+    hostname = config.get('db2', 'hostname')
+    port = config.get('db2', 'port')
+    user = config.get('db2', 'username')
+    pw = config.get('db2', 'password')
 
     connect_string = "DATABASE=" + db + ";HOSTNAME=" + hostname + ";PORT=" + port + ";UID=" + user + ";PWD=" + pw + ";"
 
@@ -293,3 +298,7 @@ def connect_to_db():
 
     cursor = conn.cursor()
     return cursor
+
+
+# c = connect_to_db
+# print get_question()
