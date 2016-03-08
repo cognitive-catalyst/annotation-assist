@@ -7,16 +7,16 @@ If you do not have a db2 instance, these instructions should help you create one
 - Docker ([Install here](https://docs.docker.com/engine/installation/))
 
 ## Install Cloud Foundry Container plugin
-**OS X**
-`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-mac`
-**Linux 64-bit**	
-`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-linux_x64`
-**Linux 32-bit	**
-`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-linux_x86`
-**Windows 64-bit	**
-`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-windows_x64.exe`
-**Windows 32-bit	**
-`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-windows_x86.exe`
+**OS X**  
+`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-mac`  
+**Linux 64-bit**  
+`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-linux_x64`  
+**Linux 32-bit**  
+`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-linux_x86`  
+**Windows 64-bit**  
+`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-windows_x64.exe`  
+**Windows 32-bit**  
+`cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-windows_x86.exe`  
 
 ##Instructions
 Run the following command to login to Bluemix containers.  
