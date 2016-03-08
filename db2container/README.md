@@ -46,8 +46,8 @@ Run the following script to initialize the database
 `db2container/create_database.sh`
 
 Update config/properties.ini for annotation-assist:  
-hostname = the public ip address you bound your container to
+hostname = the public ip address you bound your container to  
 username = db2inst1  
-password = the password you specified in the `cf ic run...` command
-port = 50000
+password = the password you specified in the `cf ic run...` command  
+port = 50000  
 db = aa_db
