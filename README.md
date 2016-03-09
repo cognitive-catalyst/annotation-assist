@@ -15,16 +15,8 @@ has to learn from, and the greater potential for accuracy on the broad
 corpus which defines the system purview.
 
 This system is a tool to grade the output any type of question/answering
-system, but has special accomodations currently built in to export the
-annotations to the "Watson Engagement Advisor" (WEA). Therefore it can
-be used in one of two ways:
-
-1. To collect human feedback from any q/a system (imported via csv),
-   display analytics on the feedback, and export the results to a csv file.
-2. To collect human feedback on system log files of a WEA instance,
-   associate the answer with all of the possible answers in that WEA
-   instance, and export the annotations via the administrator ID XMGR
-   for your specific WEA instance.
+system.  To collect human feedback from any q/a system (imported via csv),
+display analytics on the feedback, and export the results to a csv file.
 
 
 INITIALIZE
@@ -33,9 +25,9 @@ INITIALIZE
 ### Mandatory
 The system needs a csv file with question / answer pairs with the following
 headers (please match exact string):  
- - QuestionText  
- - TopAnswerText  
- - TopAnswerConfidence  
+ - `QuestionText`
+ - `TopAnswerText`  
+ - `TopAnswerConfidence`  
 
 ANNOTATE
 --------
@@ -63,7 +55,7 @@ will be presented with
     "in purview of the system"
    or
     "out of purview of the system"
-   If in-purview is selected then will prompt for a 0-100 ranking of the
+   If in-purview is selected then will prompt for a rating of the
    given answer.
 
   The purview, and rating (if applicable) are then added to the approved
