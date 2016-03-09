@@ -37,7 +37,6 @@ def upload():
 @blueprint.route('/get_question', methods=["POST", "GET"])
 def annotate():
     system_name = request.form['system_name']
-    print system_name
     question_data = db_ops.get_question(system_name)
     return json.dumps(question_data)
 
@@ -45,7 +44,6 @@ def annotate():
 @blueprint.route('/get_systems', methods=["POST", "GET"])
 def get_systems():
     systems = db_ops.get_systems()
-    print {'systems': systems}
     return json.dumps({'systems': systems})
 
 
@@ -86,7 +84,6 @@ def get_all_gt():
 
 @blueprint.route('/export_gt', methods=["POST", "GET"])
 def export_gt():
-    print request.form['system-name']
     gt = db_ops.export_annotated(request.form['system-name'])
 
     buf = StringIO.StringIO()

@@ -257,15 +257,21 @@ def update_question(question_id, is_on_topic, human_performance_rating=0):
 
 def upload_questions(system_name, file):
     '''Upload the questions in the file and link them to the given system'''
-    # try:
-    #     init_database()
-    # except:
-    #     pass
+    try:
+        init_database()
+    except:
+        pass
     upload_id = _add_upload(system_name)
     reader = csv.DictReader(file.read().splitlines())
 
+    params = []
     for i, row in enumerate(reader):
-        _add_question(row, upload_id)
+        par = row['QuestionText'].replace("'", "''").decode('latin-1'), row['TopAnswerText'].replace("'", "''").decode('latin-1'), row['TopAnswerConfidence'], upload_id
+        params.append(par)
+
+    cmd = "INSERT INTO \"Questions\" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)"
+
+    execute_many(cmd, params)
 
 
 def execute_cmd(cmd, fetch_results=False):
@@ -276,6 +282,13 @@ def execute_cmd(cmd, fetch_results=False):
         results = cursor.fetchall()
     cursor.close()
     return results
+
+
+def execute_many(cmd, parameters):
+
+    cursor = connect_to_db()
+    cursor.executemany(cmd, parameters)
+    cursor.close()
 
 
 def connect_to_db():
@@ -297,6 +310,3 @@ try:
     init_database()
 except:
     pass
-
-# c = connect_to_db
-# print get_question()
