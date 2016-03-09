@@ -9,15 +9,6 @@ import ConfigParser
 
 # TODO: export gt needs to consider the checkbox variables
 
-# try:
-#     vcap = json.loads(os.getenv('VCAP_SERVICES'))
-#     credentials = vcap['sqldb'][0]['credentials']
-
-
-# except:
-#     with open('config/credentials.json', 'r') as f:
-#         credentials = json.loads(f.read())['credentials']
-
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
 
@@ -75,7 +66,7 @@ tables = {
             },
             {
                 'title': 'System_Answer',
-                'type': 'VARCHAR(5000)',
+                'type': 'VARCHAR(10000)',
                 'options': 'NOT NULL'
             },
             {
@@ -114,7 +105,6 @@ tables = {
 def init_database():
     '''Initializes the database'''
     for name in table_names:
-        print name
         _create_table(name, tables[name])
 
 
@@ -176,10 +166,15 @@ def _add_upload(system_name):
 def _add_question(question, upload_id):
     '''Add the given question to the table with foreign key upload_id'''
 
-    cmd = "INSERT INTO \"Questions\" (Question_Text,System_Answer,Confidence,Upload_ID) Values('{0}','{1}','{2}','{3}')" \
-        .format(question['QuestionText'].replace("'", "''"), question['TopAnswerText'].replace("'", "''"), question['TopAnswerConfidence'], upload_id)
+    # question['QuestionText'].replace("'", "''").decode('utf-8')
 
-    execute_cmd(cmd)
+    try:
+        cmd = "INSERT INTO \"Questions\" (Question_Text,System_Answer,Confidence,Upload_ID) Values('{0}','{1}','{2}','{3}')" \
+            .format(question['QuestionText'].replace("'", "''"), question['TopAnswerText'].replace("'", "''"), question['TopAnswerConfidence'], upload_id).decode('latin-1')
+
+        execute_cmd(cmd)
+    except:
+        raise
 
 
 def _system_does_exist(system_name):
@@ -226,7 +221,6 @@ def get_similar(answer):  # TODO: write this method
     cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1'".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score)
 
     questions = execute_cmd(cmd, True)
-    print questions
     return questions
 
 
@@ -263,12 +257,12 @@ def update_question(question_id, is_on_topic, human_performance_rating=0):
 
 def upload_questions(system_name, file):
     '''Upload the questions in the file and link them to the given system'''
-    try:
-        init_database()
-    except:
-        pass
+    # try:
+    #     init_database()
+    # except:
+    #     pass
     upload_id = _add_upload(system_name)
-    reader = csv.DictReader(file)
+    reader = csv.DictReader(file.read().splitlines())
 
     for i, row in enumerate(reader):
         _add_question(row, upload_id)
@@ -299,6 +293,10 @@ def connect_to_db():
     cursor = conn.cursor()
     return cursor
 
+try:
+    init_database()
+except:
+    pass
 
 # c = connect_to_db
 # print get_question()
