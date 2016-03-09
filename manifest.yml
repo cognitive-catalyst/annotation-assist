@@ -1,12 +1,10 @@
 applications:
 - disk_quota: 256M
-  host: test-qstore
-  name: test-qstore
+  host: <app-name>
+  name: <app-name>
   command: python server.py
   path: .
   instances: 1
   memory: 256M
   domain: mybluemix.net
   buildpack: https://github.com/cloudfoundry/python-buildpack#v1.3.5
-  services:
-    - my_database

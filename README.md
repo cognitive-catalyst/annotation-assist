@@ -32,14 +32,10 @@ INITIALIZE
 
 ### Mandatory
 The system needs a csv file with question / answer pairs with the following
-headers (please match exact string):
-* DateTime
-* QuestionText
-* TopAnswerText
-* TopAnswerConfidence
-Please note that the "TopAnswer" string is an artifact of the WEA
-export column names, and
-
+headers (please match exact string):  
+ - QuestionText  
+ - TopAnswerText  
+ - TopAnswerConfidence  
 
 ANNOTATE
 --------
@@ -90,21 +86,24 @@ a machine learning system.
 
 
 1. Create a bluemix account
-
-2. Get a local copy of the annotation assist code
-    * clone git repo https://github.com/cognitive-catalyst/annotation-assist
-
-
-3. Change the properties.ini (username and password will be the credentials for the application)
-
+2. Install the Cloud Foundry CLI ([Instructions Here](http://docs.cloudfoundry.org/cf-cli/install-go-cli.html))
+3. Get a local copy of the annotation assist code
+ -`git clone https://github.com/cognitive-catalyst/annotation-assist`
 4. Modify the manifest.yml to uniquely name the service you want to create (change the hostname and name)
+5. Modify the properties.ini (Note: if you do **not** have a db2 instance, [click here](/db2container) for instructions on setting up db2 in a Bluemix container)
+ - [properties]
+     - username (application level username)
+     - password (application level password)
+ - [db2]
+    - hostname (the hostname of your db2)
+    - username (the db2 user)
+    - password (the password for the db user)
+    - port (the port to access the database, default 50000)
+    - db (name of database)
 
-5. Login to your bluemix accound from the command line
+5. Login to your bluemix account from the command line
     `cf api https://api.ng.bluemix.net`
     `cf login -u <ibmer>@us.ibm.com -o <ibmer>@us.ibm.com -s dev`
-
-6. Add the sqldb service
-    `cf create-service sqldb sqldb_free my_database`
 
 
 7. Build and push the annotation assist app to your bluemix space
@@ -127,7 +126,7 @@ at the node website: https://nodejs.org/en/
 * Intergrate a way to export inputs to Rank and Retrieve system from annotations in database
 * Add user IDs, and authorized only access to database upload screen
 
-# licence
+# License
 
 see License.txt
 
