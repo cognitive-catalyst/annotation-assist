@@ -19,14 +19,14 @@ If you do not have a db2 instance, these instructions should help you create one
 `cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-windows_x86.exe`  
 
 ##Instructions
-Run the following command to login to Bluemix containers.  
-`cf ic login`
-
 Create a namespace for your registry (I recommend using your username as registry-name).  
 `cf ic namespace set <registry-name>`
 
+Run the following command to login to Bluemix containers.  
+`cf ic login`
+
 Push the [DB2 Express-c image](https://hub.docker.com/r/ibmcom/db2express-c/) to your registry. This step will take approximately 15 minutes.  
-`cf ic cpi ibmcom/db2express-c amblock/db2:latest`
+`cf ic cpi ibmcom/db2express-c <registry-name>/db2:latest`
 
 
 Start a bluemix container (named container). **Note: The password requirements are *extremely* strict. I recommend using a random character string (make sure to write it down as you will need it later)**   
@@ -51,3 +51,6 @@ username = db2inst1
 password = the password you specified in the `cf ic run...` command  
 port = 50000  
 db = aa_db
+
+##Possible Issues
+If you have issues installing the Cloud Foundry Container plugin, please reinstall/upgrade the [Cloud Foundry CLI](http://docs.cloudfoundry.org/cf-cli/install-go-cli.html). Please follow the instructions in the link as the homebrew `cf` version is too old to be compatible with the plugin.
