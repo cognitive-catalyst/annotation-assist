@@ -266,7 +266,7 @@ def upload_questions(system_name, file):
 
     params = []
     for i, row in enumerate(reader):
-        par = row['QuestionText'].replace("'", "''").decode('latin-1'), row['TopAnswerText'].replace("'", "''").decode('latin-1'), row['TopAnswerConfidence'], upload_id
+        par = row['QuestionText'].decode('latin-1'), row['TopAnswerText'].decode('latin-1'), row['TopAnswerConfidence'], upload_id
         params.append(par)
 
     cmd = "INSERT INTO \"Questions\" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)"
