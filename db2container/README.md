@@ -19,6 +19,10 @@ If you do not have a db2 instance, these instructions should help you create one
 `cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-windows_x86.exe`  
 
 ##Instructions
+Make sure that you have set your cloud foundry api correctly, and login.  For example:
+`cf api https://api.ng.bluemix.net`
+`cf login -u <ibm_id> -o <ibm_id> -s dev`
+
 Create a namespace for your registry (I recommend using your username as registry-name).  
 `cf ic namespace set <registry-name>`
 
