@@ -82,6 +82,13 @@ def get_all_gt():
     return returned
 
 
+def _encode_me(d):
+    for key in d:
+        if type(d[key]) != int:
+            d[key] = d[key].encode('latin-1')
+    return d
+
+
 @blueprint.route('/export_gt', methods=["POST", "GET"])
 def export_gt():
     gt = db_ops.export_annotated(request.form['system-name'])
@@ -90,7 +97,9 @@ def export_gt():
     headers = gt[0].keys()
     f = csv.DictWriter(buf, fieldnames=headers)
     f.writeheader()
-    f.writerows(gt)
+
+    for line in gt:
+        f.writerow(_encode_me(line))
     buf.seek(0)
 
     return send_file(buf, as_attachment=True, attachment_filename='new_ground_truth.csv')
