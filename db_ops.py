@@ -218,7 +218,7 @@ def get_similar(answer):  # TODO: write this method
 
     output_fields = ["Question_Text", "Annotation_Score"]
 
-    cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1'".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score)
+    cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
 
     questions = execute_cmd(cmd, True)
     return questions
