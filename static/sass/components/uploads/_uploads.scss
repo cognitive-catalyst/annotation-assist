@@ -8,13 +8,17 @@
 
     .upload_form {
       display: flex;
-      justify-content: space-around;
+      justify-content: space-between;
       align-items: center;
       width: 100%;
-        
+
+      .system-name {
+          padding: 12;
+      }
+
         .btn-container {
           display: flex;
-          justify-content: space-around;
+          justify-content: space-between;
           width: 100%;
 
             .check{
@@ -24,15 +28,24 @@
             }
 
             .upload_file {
-                display: none; 
+                display: none;
             }
+
+
 
             .filename {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                color: #325c80;
-                opacity: 0.4; 
+                color: white;
+                font-size:24px;
+                opacity: 0.7;
+            }
+
+            .loading{
+              display: flex;
+              align-items: center;
+              height:30px;
             }
             .btn {
                 font-size: 14px;
@@ -42,15 +55,15 @@
                 padding: 12px;
                 cursor: pointer;
                 font-weight: bold;
-                transition: background 0.5s, color 0.5s; 
+                transition: background 0.5s, color 0.5s;
             }
             .btn:hover {
                   cursor: pointer;
                   background: #325c80;
-                  color: #f9f9f9; 
+                  color: #f9f9f9;
             }
             .btn:focus {
-                  outline: none; 
+                  outline: none;
             }
         }
     }

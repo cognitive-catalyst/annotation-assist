@@ -4,7 +4,6 @@
   "description": "INTRODUCTION ------------",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "webpack-dev-server",
     "build": "node node_modules/webpack/bin/webpack.js --colors --progress -p"
   },
@@ -23,6 +22,8 @@
     "d3": "^3.5.6",
     "file-loader": "^0.8.4",
     "history": "^1.9.1",
+    "jquery": "^2.2.1",
+    "jquery-ui": "^1.10.5",
     "material-ui": "^0.12.1",
     "moment": "^2.10.6",
     "react": "^0.13.3",

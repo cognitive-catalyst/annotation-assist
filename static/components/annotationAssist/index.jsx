@@ -4,7 +4,7 @@ React            = require('react/addons'),
 Button           = require('../button'),
 QueryCard        = require('../queryCard'),
 ResponseCard     = require('../responseCard'),
-Calendar         = require('../calendar'),
+SystemSelector   = require('../systemSelector'),
 Header           = require('../header'),
 
 
@@ -19,15 +19,24 @@ React.createClass({
             other_questions:[],
             new_questions: true,
             answer: '',
-            showSlider: 'none',
-            showSubmit: 'none',
             human_performance: 'null',
-            confidence: 0,
-            start_time: 0,
-            end_time: 0,
             on_topic: false,
-            loading: false
+            loading: false,
+            systems: [],
+            current_system: 'ALL SYSTEMS',
+
         };
+    },
+
+    getSystems: function(){
+        $.ajax({
+            url: '/api/get_systems',
+            type: "GET",
+            success: function(resp) {
+                var systems = ['ALL SYSTEMS'].concat(JSON.parse(resp).systems);
+                this.setState({systems:systems});
+            }.bind(this)
+        })
     },
 
     noAnnotations: function() {
@@ -49,33 +58,36 @@ React.createClass({
         $.ajax({
                 url:  '/api/get_question',
                 type: "POST",
-                data: {start_time:this.state.start_time,
-                        end_time: this.state.end_time
-                      },
+                data: {system_name: (this.state.current_system=="ALL SYSTEMS") ? '':this.state.current_system},
                 success: function(resp){
-                    var q_data = JSON.parse(resp);
-                    if (q_data.status == "SUCCESS") {
-                        this.setState({
-                            new_questions: true,
-                            initial_question: q_data.question.question,
-                            other_questions: q_data.other_questions,
-                            question_id: q_data.question.id,
-                            answer: q_data.question.answer,
-                            confidence: parseFloat(q_data.question.confidence),
-                            loading: false
-                        })
+                    const q_data = JSON.parse(resp);
+
+                    let similar_questions = []
+                    let similar_conf = 0
+                    for (var q in q_data.similar){
+                        similar_questions.push(q_data.similar[q][0])
+                        similar_conf = Math.max(similar_conf, q_data.similar[q][1])
                     }
-                    else {
-                        this.noAnnotations();
-                    }
-            }.bind(this),
-            error: function() {
-                this.noAnnotations();
-            }.bind(this)
+
+                    console.log(similar_conf)
+                    this.setState({
+                        new_questions: true,
+                        initial_question: q_data.question.text,
+                        other_questions: similar_questions,
+                        question_id: q_data.question.id,
+                        answer: q_data.question.answer,
+                        loading: false,
+                        similar_conf:similar_conf
+                    })
+                }.bind(this),
+                error: function() {
+                    this.noAnnotations();
+                }.bind(this)
         });
     },
 
     componentWillMount: function () {
+        this.getSystems();
         this.newQuestion();
     },
 
@@ -88,15 +100,16 @@ React.createClass({
     },
 
     similarToOthers: function(perf) {
+        this.newQuestion();
         $.ajax({
             url: '/api/topic',
             type: "POST",
             data: {_id:this.state.question_id,
                     on_topic: true,
-                    human_performance: 100,
+                    human_performance: this.state.similar_conf,
                   },
             success: function(data){
-                this.newQuestion();
+                // this.newQuestion();
             }.bind(this)
         });
     },
@@ -135,20 +148,19 @@ React.createClass({
         });
     },
 
-    changeDate: function(startDate, endDate) {
-        this.setState({
-            start_time: startDate,
-            end_time: endDate
-        });
+    changeActiveSystem: function(new_system){
+        this.setState({current_system:new_system},this.newQuestion)
     },
 
     render: function() {
+        console.log(this.state.similar_conf)
         return (
 
             <div className='annotation-assist'>
-                <Calendar startDate={this.state.start_time}
-                        endDate={this.state.end_time}
-                        changeDate={this.changeDate}/>
+                <SystemSelector
+                        current_system={this.state.current_system}
+                        options={this.state.systems}
+                        updateSystem={this.changeActiveSystem}/>
                 <QueryCard question={this.state.initial_question}
                            onTopic={this.onTopic}
                            offTopic={this.offTopic}

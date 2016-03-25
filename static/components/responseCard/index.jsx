@@ -93,7 +93,6 @@ Answers = React.createClass({
 ResponseCard = React.createClass({
 
     render: function() {
-        console.log(this.props.other_questions.length);
         return (
             <div className='response-card'>
 
