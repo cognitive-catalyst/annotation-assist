@@ -1,0 +1,107 @@
+
+*:focus {outline:none !important;}
+
+* {
+    z-index:inherit;
+}
+
+.overlay{
+    z-index:-1;
+    position:fixed;
+    width:100vw;
+    height:100vh;
+    top: -0;
+    left: -0;
+    opacity:0.2;
+    background-color: black;
+}
+
+.system-selector-wrapper {
+
+    $top-row-height: 222;
+    $dropdown-width: 300;
+    $dropdown-height: 35;
+    $component-padding:20;
+
+    z-index: 2;
+    display: flex;
+    align-self: flex-end;
+    position:relative;
+
+    .system-selector-dropdown{
+        cursor:pointer;
+        background-color: white;
+        width: $dropdown-width - $component-padding;
+        padding: 0 $component-padding;
+        height: $dropdown-height;
+        display: flex;
+        justify-content: space-between;
+        align-items:center;
+        margin-bottom:10px;
+        .icon{
+            font-size:22px;
+            color:$blue-dark;
+        }
+    }
+
+    .system-selector{
+
+        box-shadow:1px 1px 5px 5px rgba(100,100,100,0.1);
+        display:flex;
+        flex-direction:row;
+        justify-content: space-between;
+        position:absolute;
+        top: $dropdown-height + 5;
+        right:0;
+        padding: $component-padding;
+        background-color: $blue-light;
+
+        &::after{
+            $triangle-height:20;
+            $triangle-side:10;
+
+            position: absolute;
+            top: - $triangle-height + 3;
+            right: $component-padding + 1;
+
+            content:"\25b2";
+            color:$blue-light;
+            font-size:$triangle-height;
+            transform:scaleX(1.2);
+            text-shadow: 0px -6px 5px rgba(100,100,100,0.1);
+        }
+
+        .clickable{
+            cursor:pointer;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background-color:white;
+
+            &:hover{
+                background-color: black;
+                color:white;
+            }
+        }
+
+        .calendar-component-right{
+            display:flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            .button-container{
+            display: flex;
+            flex-direction: column;
+            align-items:center;
+            flex:1;
+            justify-content: space-between;
+                .select-option{
+                    margin: 5px 0;
+                    width:200px;
+                    height:35px;
+                }
+            }
+        }
+
+    }
+}

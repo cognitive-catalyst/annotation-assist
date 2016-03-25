@@ -1,25 +1,13 @@
 
 var
-React = require('react/addons'),
+React = require('react'),
 Header = require('../header'),
-LinearProgress = require('material-ui/lib/linear-progress'),
+Thinking = require('../watson-thinking'),
+$ = require('jquery'),
+ui = require('jquery-ui'),
+ui_style = require('jquery-ui/themes/smoothness/jquery-ui.css'),
 
 Upload = React.createClass({
-    uploadProgress: function() {
-        $.ajax({
-            url: '/api/pau_status',
-            type: "GET",
-            success: function(data){
-                this.setState({pau_progress: parseFloat(data)});
-            }.bind(this)
-        });
-    },
-
-    componentDidMount: function() {
-        console.log('made it');
-        this.uploadProgress();
-        setInterval(this.uploadProgress, 1000);
-    },
 
     wantsToDelete: function() {
         this.setState({trying_to_delete: true});
@@ -37,46 +25,11 @@ Upload = React.createClass({
 
     getInitialState: function() {
         return {log_uri : "No File Found",
-                pau_uri  : "No File Found",
-                gt_uri  : "No File Found",
-                pau_progress: 100,
-                trying_to_delete: false
-               };
+                trying_to_delete: false,
+                upload_status:"not started",
+                systems:[]};
     },
 
-    handleSubmit: function(e) {
-        e.preventDefault();
-    },
-
-    handlePAUFile: function(e) {
-        var self = this;
-        var reader = new FileReader();
-        var file = e.target.files[0];
-
-        reader.onload = function(upload) {
-            self.setState({
-                pau_uri: file.name,
-            });
-        }
-
-    reader.readAsDataURL(file);
-
-    },
-
-    handleGroundTruthFile: function(e) {
-        var self = this;
-        var reader = new FileReader();
-        var file = e.target.files[0];
-
-        reader.onload = function(upload) {
-            self.setState({
-                gt_uri: file.name,
-            });
-        }
-
-    reader.readAsDataURL(file);
-
-    },
 
     handleLogFile: function(e) {
         var self = this;
@@ -85,12 +38,55 @@ Upload = React.createClass({
 
         reader.onload = function(upload) {
             self.setState({
-                log_uri: file.name,
+                upload_status:"not started",
+                log_uri: file.name
             });
         }
 
-    reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+    },
 
+    getSystems: function(){
+        $.ajax({
+            url: '/api/get_systems',
+            type: "GET",
+            success: function(resp) {
+                var systems = JSON.parse(resp).systems;
+                console.log(systems)
+                this.setState({systems:systems});
+            }.bind(this)
+        })
+    },
+
+    handleSubmit: function(e) {
+        e.preventDefault();
+
+        this.setState({upload_status:'started'});
+
+        var form = React.findDOMNode(this.refs.form);
+        var fData = new FormData(form);
+        var xhr = new XMLHttpRequest();
+
+        xhr.open("POST", '/api/upload', true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState==4){
+                if (xhr.status == 200) {
+                    this.setState({upload_status:'complete'});
+
+                    form.reset()
+                }
+                else{
+                    this.setState({upload_status:'failed'});
+                }
+            }
+
+        }.bind(this);
+
+        xhr.send(fData);
+    },
+
+    componentDidMount: function() {
+          this.getSystems();
     },
 
     render: function() {
@@ -105,48 +101,50 @@ Upload = React.createClass({
             second_button = {display: 'none'};
         }
 
+        var sys = $( "#system-name" );
+        sys.autocomplete({
+          source: this.state.systems
+        });
+
+        console.log(this.state.upload_status)
         return (
             <div className='container'>
                 <div className='uploads'>
-                    <p>Step 1 (optional): Upload JSON file with entire corpus of PAU IDs</p>
-                    <form className="upload_form" method="post" action="/api/pau_upload" encType="multipart/form-data">
+                    <p>Upload QuestionsData.csv</p>
+                    <form className="upload_form" method="post" action="/api/upload" encType="multipart/form-data" ref='form' onSubmit={this.handleSubmit} >
                         <div className="btn-container">
+                            <input id='system-name' placeholder="Select System Name" className='system-name' type="text" name= "system-name" ref='sys_name' autoComplete='off' required/>
+
                             <label className="btn">Choose File
-                                <input className="upload_file" type="file" onChange={this.handlePAUFile} name="data"/>
+                                <input className="upload_file" type="file" onChange={this.handleLogFile} name="data" required/>
                             </label>
-                            <span className="filename"> {this.state.pau_uri}</span>
+
+                            <span className="filename" style={{display: this.state.upload_status == 'not started' ? '':'none'}}>{this.state.log_uri}</span>
+                            <img className="loading" style={{display: this.state.upload_status == 'started' ? '':'none'}} src='static/img/watson-thinking-white.svg'/>
+                            <span className="filename" style={{display: this.state.upload_status == 'complete' ? '':'none'}} >&#10003; Upload Succeeded</span>
+                            <span className="filename" style={{display: this.state.upload_status == 'failed' ? '':'none'}}>&#10007; Upload Failed</span>
+
+
+                            {/**(() => {
+                                switch(this.state.uploads_status) {
+                                    case 'not started':
+                                        return (<span className="filename" >{this.state.log_uri}</span>)
+                                    case 'started':
+                                        return (<img className="loading" src='static/img/watson-thinking-white.svg'/>)
+                                    case 'complete':
+                                        return (<span className="filename" >&#10003; Upload Succeeded</span>)
+                                    case 'failed':
+                                        return (<span className="filename" >&#10007; Upload Failed</span>)
+                                }
+                            })()*/}
                             <input className="btn" type="submit" value="Submit" />
                         </div>
                     </form>
-                    <div style= {this.state.pau_progress < 100 ?  {display: 'block'} : {display: 'none'}}>
-                        <LinearProgress mode="determinate" value={this.state.pau_progress} />
-                    </div>
-                    <p>Step 2 (optional): Upload CSV containing all approved question/answer pairs (aka Ground Truth)</p>
-                    <form className="upload_form" method="post" action="/api/upload" encType="multipart/form-data">
-                        <input type="hidden" name="gt" value="Ground Truth"/>
-                        <div className="btn-container">
-                            <label className="btn">Choose File
-                                <input className="upload_file" type="file" onChange={this.handleGroundTruthFile} name="data"/>
-                            </label>
-                            <span className="filename"> {this.state.gt_uri}</span>
-                            <input className="btn" type="submit" value="Submit"/>
-                        </div>
-                    </form>
-                    <p>Step 3 (mandatory): Upload QuestionsData.csv</p>
-                    <form className="upload_form" method="post" action="/api/upload" encType="multipart/form-data">
-                        <input type="hidden" name="gt" value="Logs"/>
-                        <div className="btn-container">
-                            <label className="btn">Choose File
-                                <input className="upload_file" type="file" onChange={this.handleLogFile} name="data"/>
-                            </label>
-                            <span className="filename"> {this.state.log_uri}</span>
-                            <input className="btn" type="submit" value="Submit"/>
-                        </div>
-                    </form>
+
                     <p>Note: You may upload multiple QuestionsData.csv files as you wish</p>
                     <div className="btn-container">
-                     <label className='btn' style={first_button} onClick={this.wantsToDelete.bind(this)}>Delete Database</label>
-                     <label className='btn' style={second_button} onClick={this.deleteDB.bind(this)}>Are You Sure? This Cannot Be Undone.</label>
+                     <label className='btn' style={first_button} onClick={this.wantsToDelete}>Delete Database</label>
+                     <label className='btn' style={second_button} onClick={this.deleteDB}>Are You Sure? This Cannot Be Undone.</label>
                     </div>
                 </div>
             </div>

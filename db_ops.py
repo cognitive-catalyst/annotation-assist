@@ -1,402 +1,312 @@
 import json
 import csv
-import requests
-import random
-import time
-import sys
-import pandas as pd
-import StringIO
-import numpy as np
+import ibm_db
+import ibm_db_dbi
+import datetime
+import os
 import ConfigParser
-import threading
+
+
+# TODO: export gt needs to consider the checkbox variables
 
 config = ConfigParser.ConfigParser()
-config.read('properties.ini')
-
-pau_status = 100
+config.read('config/properties.ini')
 
 
-def _post(url, data):
-    return requests.post(
-        url,
-        headers={'Content-type': 'application/json'},
-        data=json.dumps(data)
-    )
+table_names = ["Systems", "Uploads", "Questions"]
+
+tables = {
+    'Systems': {
+        'columns': [
+            {
+                'title': 'Name',
+                'type': 'VARCHAR(15)',
+                'options': 'NOT NULL PRIMARY KEY'
+            }
+        ],
+        'foreign_keys': []
+    },
+    'Uploads': {
+        'columns': [
+            {
+                'title': 'Upload_ID',
+                'type': 'INT',
+                'options': ' NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1)'
+            },
+            {
+                'title': 'Timestamp',
+                'type': 'TIMESTAMP',
+                'options': 'NOT NULL with DEFAULT'
+            },
+            {
+                'title': 'System_Name',
+                'type': 'VARCHAR(15)',
+                'options': 'NOT NULL'
+            },
+        ],
+        'foreign_keys': [
+            {
+                'field': 'System_Name',
+                'reference_table': 'Systems',
+                'reference_column': 'Name'
+            }
+        ]
+    },
+    'Questions': {
+        'columns': [
+            {
+                'title': 'Question_ID',
+                'type': 'INT',
+                'options': ' NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1)'
+            },
+            {
+                'title': 'Question_Text',
+                'type': 'VARCHAR(500)',
+                'options': 'NOT NULL'
+            },
+            {
+                'title': 'System_Answer',
+                'type': 'VARCHAR(10000)',
+                'options': 'NOT NULL'
+            },
+            {
+                'title': 'Confidence',
+                'type': 'DOUBLE',
+                'options': ''
+            }, {
+                'title': 'Is_In_Purview',
+                'type': 'SMALLINT',
+                'options': ''
+            }, {
+                'title': 'Annotation_Score',
+                'type': 'INT',
+                'options': ''
+            }, {
+                'title': 'Is_Annotated',
+                'type': 'SMALLINT',
+                'options': 'NOT NULL with DEFAULT'
+            }, {
+                'title': 'Upload_ID',
+                'type': 'INT',
+                'options': 'NOT NULL'
+            },
+        ],
+        'foreign_keys': [
+            {
+                'field': 'Upload_ID',
+                'reference_table': 'Uploads',
+                'reference_column': 'Upload_ID'
+            }
+        ]
+    },
+}
 
 
-def _put(url, data):
-    return requests.put(
-        url,
-        headers={'Content-type': 'application/json'},
-        data=json.dumps(data)
-    )
-
-def _get(url):
-    return requests.get(url);
-
-def index_post(url, fields):
-    _post(
-        url,
-        {
-            "type": "json",
-            "index": {
-                "fields": fields
-                }
-        }
-    )
+def init_database():
+    '''Initializes the database'''
+    for name in table_names:
+        _create_table(name, tables[name])
 
 
+def _create_table(name, options):
+    '''Creates a db2 table with the specified name and options (columns & foreign keys)'''
+    columns = options['columns']
+    foreign_keys = options['foreign_keys']
 
-def delete(db_creds):
-    return requests.delete(db_creds['url'] + '/questionstore').json()
+    prefix = ''
+    col_string = ''
 
-def percent(db_creds, time_start, time_end):
-    annotated_url = db_creds['url'] + "/questionstore/_design/total_annotated/_view/annotated"
-    not_annotated_url = db_creds['url'] + "/questionstore/_design/total_annotated/_view/not_annotated"
+    for column in columns:
+        col_string += prefix
+        col_string += '{0} {1} {2}'.format(column['title'], column['type'], column['options'])
+        prefix = ','
 
-    annotated = requests.get(annotated_url).json()["rows"]
-    not_annotated = requests.get(not_annotated_url).json()["rows"]
+    f_key_string = ''
+    for f_key in foreign_keys:
+        f_key_string += prefix
+        f_key_string += 'FOREIGN KEY ({0}) REFERENCES "{1}"({2})'.format(f_key['field'], f_key['reference_table'], f_key['reference_column'])
 
-    total_annotated = 0
-    total_not_annotated = 0
+    cmd = 'CREATE TABLE "{0}" ({1}{2})'.format(name, col_string, f_key_string)
+    execute_cmd(cmd)
 
-    for doc in annotated:
-        if int(doc["value"]) >= time_start and int(doc["value"]) <= time_end:
-            total_annotated += 1
 
-    for doc in not_annotated:
-        if int(doc["value"]) >= time_start and int(doc["value"]) <= time_end:
-            total_not_annotated += 1
+def delete_all():
+    '''Clears the database, reinitializes empty tables'''
+    for name in table_names:
+        try:
+            cmd = 'DROP TABLE "{0}";'.format(name)
+            execute_cmd(cmd)
+        except:
+            print 'failed ' + name
+    init_database()
+
+
+def _add_system(system_name):
+    '''Adds a new system to the database'''
+    cmd = "INSERT INTO \"Systems\" (NAME) VALUES('{0}');".format(system_name.upper())
+    execute_cmd(cmd)
+
+
+def _add_upload(system_name):
+    '''Adds an upload to the database. Adds the system if it does not already exist. Returns the upload_id of the new upload row'''
+    if not _system_does_exist(system_name):
+        _add_system(system_name)
+
+    timestamp = datetime.datetime.now()
+    cmd = "INSERT INTO \"Uploads\" (System_Name, Timestamp) VALUES('{0}','{1}');".format(system_name.upper(), timestamp)
+    execute_cmd(cmd)
+
+    cmd = "SELECT Upload_ID FROM \"Uploads\" WHERE Timestamp='{0}'".format(timestamp)
+    results = execute_cmd(cmd, True)[0]
+
+    upload_id = results[0]
+    return upload_id
+
+
+def _add_question(question, upload_id):
+    '''Add the given question to the table with foreign key upload_id'''
+
+    # question['QuestionText'].replace("'", "''").decode('utf-8')
 
     try:
-        percentage = float(total_annotated)/(total_not_annotated + total_annotated)
+        cmd = "INSERT INTO \"Questions\" (Question_Text,System_Answer,Confidence,Upload_ID) Values('{0}','{1}','{2}','{3}')" \
+            .format(question['QuestionText'].replace("'", "''"), question['TopAnswerText'].replace("'", "''"), question['TopAnswerConfidence'], upload_id).decode('latin-1')
+
+        execute_cmd(cmd)
     except:
-        return 0
-
-    return percentage
+        raise
 
 
-def get_gt(db_creds, payload):
-    query_post_url = db_creds['url'] + "/questionstore/_find"
+def _system_does_exist(system_name):
+    '''Check if the given system exists in the table'''
 
-    threshold = int(payload["threshold"])
-    start_time = float(payload["st"])
-    end_time = float(payload["et"]) + 86400
-    good_selector_query = {
-        "selector": {
-            "annotated": True,
-            "ground_truth": False,
-            "timestamp": {
-                "$gt": start_time,
-                "$lt": end_time
-            },
-            "human_performance_rating": {
-                "$gt": threshold
-            }
-        },
-        "fields": [
-            "question",
-            "on_topic",
-            "PAU",
-            "confidence",
-            "answer",
-            "queryTime",
-            "human_performance_rating"
-            ]
-        }
+    cmd = 'SELECT COUNT(1) FROM "Systems" WHERE Name=\'{0}\''.format(system_name.upper())
+    res = execute_cmd(cmd, True)[0][0]
 
-    bad_selector_query = {
-        "selector": {
-            "annotated": True,
-            "ground_truth": False,
-            "timestamp": {
-                "$gt": start_time,
-                "$lt": end_time
-            },
-            "human_performance_rating": {
-                "$lt": threshold
-            },
-            "on_topic": "true"
-        },
-        "fields": [
-            "question",
-            "on_topic",
-            "confidence",
-            "answer",
-            "queryTime",
-            "human_performance_rating"
-            ]
-        }
-
-    offTopic_selector_query = {
-        "selector": {
-            "annotated": True,
-            "ground_truth": False,
-            "timestamp": {
-                "$gt": start_time,
-                "$lt": end_time
-            },
-            "on_topic": "false"
-        },
-        "fields": [
-            "question",
-            "on_topic",
-            "confidence",
-            "answer",
-            "queryTime"
-            ]
-        }
-
-    payback = []
-    if payload["annotated_good"]:
-        docs = _post(query_post_url, good_selector_query).json()["docs"]
-        for doc in docs:
-            doc["judgement"] = str(doc["human_performance_rating"])
-        payback.extend(docs)
-    if payload["annotated_bad"]:
-        docs = _post(query_post_url, bad_selector_query).json()["docs"]
-        for doc in docs:
-            doc["judgement"] = str(doc["human_performance_rating"])
-        payback.extend(docs)
-    if payload["off_topic"]:
-        docs = _post(query_post_url, offTopic_selector_query).json()["docs"]
-        for doc in docs:
-            doc["judgement"] = "NaN"
-        payback.extend(docs)
-
-    return payback
+    return bool(res)
 
 
-def get_question(db_creds, time_start, time_end): # ADD QUERY LOGIC HERE
-    query_post_url = db_creds['url'] + "/questionstore/_find"
-
-    selector_query = {
-        "selector": {
-            "annotated": False,
-            "timestamp": {
-                "$gt": time_start,
-                "$lt": time_end
-            }
-        },
-        "fields": ["_id", "question", "_rev", "answer", "confidence"],
-        "limit": 10
-    }
-    r = _post(query_post_url, selector_query)
-
-    docs = r.json()["docs"]
-    if len(docs) > 0:
-        doc = random.choice(docs)
-        _question = doc['question']
-        answer = doc['answer']
-        _id = doc["_id"]
-        confidence = doc["confidence"]
+def get_percent(system_name=None):
+    if system_name != '':
+        cmd1 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\''.format(system_name.upper())
+        cmd2 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\' AND IS_ANNOTATED=\'1\''.format(system_name.upper())
     else:
-        return {"status": "FAILURE"}
+        cmd1 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id'
+        cmd2 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'1\''
 
-    question = {"question": _question, "id": _id, "answer": answer, "confidence": confidence}
-
-    r = _get(db_creds['url'] + "/questionstore/_design/similar-ground-truth/_view/similar-ground-truth") #check to see if already in ground truth
-    docs = r.json()["rows"]
-    questions = []
-    for doc in docs:
-        gt_answer = doc["value"]["answer"].replace("\n", "").replace("\r", "")
-        log_answer = answer.replace("\n", "").replace("\r", "")
-        if doc["key"] == question["question"] and gt_answer == log_answer:
-            update_question(db_creds, _id, doc["value"]["on_topic"], 100)
-            return get_question(db_creds, time_start, time_end)
-
-    r = _get(db_creds['url'] + "/questionstore/_design/similar-annotated/_view/similar-annotated") # check to see if already annotated question with same answer
-    docs = r.json()["rows"]
-    questions = []
-    for doc in docs:
-        if len(questions)<5 and doc["value"]["answer"] == answer and doc["id"] != _id and doc["value"]["performance"] > 70:
-            questions.append(doc["key"])
-    return {"question": question, "other_questions": questions, "status": "SUCCESS"}
+    total = execute_cmd(cmd1, True)[0][0]
+    annotated = execute_cmd(cmd2, True)[0][0]
+    return float(annotated) / total * 100
 
 
-def update_question(db_creds, question_id, on_topic, human_performance_rating):
-    put_url = db_creds['url'] + "/questionstore/" + question_id
-    r = requests.get(put_url)
-    jr = r.json()
-    jr["on_topic"] = on_topic
-    jr["human_performance_rating"] = int(human_performance_rating)
-    jr["annotated"] = True
+def export_annotated(system_name):
 
-    r = _put(put_url, jr)
+    output_fields = ["Question_ID", "Question_Text", "System_Answer", "Is_In_Purview", "Annotation_Score", "System_Name"]
 
-    return json.dumps(r.json())
-
-
-def pau_stat():
-    return pau_status
-
-
-def pau_process(db_creds, paus):
-    paus_and_answer = []
-    global pau_status
-    for index, pau in enumerate(paus):
-        WEA_url = config.get('properties', 'wea_url') + pau
-        jsx = requests.get(
-            WEA_url,
-            headers={'Content-type': 'application/json'},
-            auth=(config.get('properties', 'wea_username'), config.get('properties', 'wea_password'))
-            )
-        responseMarkup = str(jsx.json()["hits"][0]["responseMarkup"])
-        paus_and_answer.append({"id": pau,
-                                "answerText": responseMarkup})
-        pau_status = float(index)/len(paus)*100
-
-    print 'uploading to db...'
-    _post(db_creds['url'] + "/questionstore",
-    {
-        "_id": "PAUS",
-        "paus": paus_and_answer
-    })
-    pau_status = 100
-    return 'posted'
-
-def upload_paus(db_creds, file):
-    requests.put(db_creds["url"] + "/questionstore")
-    paus_json = json.loads(file)
-    global pau_status
-    pau_status = 0
-    paus = []
-    for pau in paus_json:
-        paus.append(pau["pauId"])
-    job = threading.Thread(target=pau_process, args=(db_creds, paus,))
-    job.daemon = True
-    job.start()
-    return 'done'
-
-
-def upload_docs(db_creds, file, gt):
-    requests.put(db_creds["url"] + "/questionstore")
-    csv.field_size_limit(sys.maxsize)
-    post_url = db_creds['url'] + "/questionstore/_bulk_docs"
-    query_post_url = db_creds['url'] + "/questionstore/_find"
-
-    bulkdocs = {"docs": []}
-    bulk_maindocs = {"docs": []}
-
-    all_lines = str(file).splitlines()
-    headers = all_lines[0].split(",")
-    _reader = pd.read_csv(StringIO.StringIO(file), sep=",", names=headers)
-
-    if gt:
-        for row in range(1, len(_reader["QUESTION"])):
-            mapped_question = ' '.join(_reader["QUESTION"][row].split())
-            bulk_maindocs["docs"].append({"_id": mapped_question})
-
-            bulkdocs["docs"].append(
-                {
-                    "mapped_question": mapped_question,
-                    "question": unicode(str(_reader['QUESTION'][row]), 'utf-8'),
-                    "answer": unicode(str(_reader['ANS_LONG'][row]), 'utf-8'),
-                    "on_topic": _reader['IS_ON_TOPIC'][row],
-                    "timestamp": time.time(),
-                    "human_performance_rating": 100,
-                    "annotated": True,
-                    "ground_truth": True,
-                    "confidence": 100
-                }
-            )
+    if system_name != '':
+        cmd = 'SELECT {0} FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{1}\' AND IS_ANNOTATED=\'1\''.format(','.join(output_fields), system_name.upper())
     else:
-        for row in range(1, len(_reader["QuestionText"])):
-            if _reader["UserName"][row] != "wcts_api_test":
-                mapped_question = ' '.join(_reader["QuestionText"][row].split())
-                bulk_maindocs["docs"].append({"_id": mapped_question})
+        cmd = 'SELECT {0} FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'1\''.format(','.join(output_fields))
 
-                bulkdocs["docs"].append(
-                    {
-                        "mapped_question": mapped_question,
-                        "question": unicode(str(_reader['QuestionText'][row]), 'utf-8'),
-                        "answer": unicode(str(_reader['TopAnswerText'][row]), 'utf-8'),
-                        "timestamp": time.time(),
-                        "human_performance_rating": 0,
-                        "annotated": False,
-                        "ground_truth": False,
-                        "confidence": _reader["TopAnswerConfidence"][row],
-                        "on_topic": "null",
-                        "queryTime": _reader["DateTime"][row]
-
-                    }
-                )
-    paus_selector = {
-      "selector": {
-        "_id": {
-          "$eq": "PAUS"
-        }
-      },
-      "fields": [
-        "paus"
-      ]
-    }
-
-    r = _post(query_post_url, paus_selector)
-    paus_and_answers = r.json()["docs"][0]["paus"]
-    pau_ids = []
-    pau_answers = []
-
-    for i in paus_and_answers:
-        pau_ids.append(i["id"])
-        pau_answers.append(i["answerText"])
+    results = execute_cmd(cmd, True)
+    gt = [dict(zip(output_fields, q)) for q in results]
+    return gt
 
 
-    for doc in bulkdocs["docs"]:
-        try:
-            doc["PAU"] = pau_ids[pau_answers.index(doc["answer"])]
-        except:
-            continue
+def get_similar(answer):  # TODO: write this method
+    acceptable_annotation_score = 60
+
+    output_fields = ["Question_Text", "Annotation_Score"]
+
+    cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
+
+    questions = execute_cmd(cmd, True)
+    return questions
 
 
+def get_systems():
 
-    _post(post_url, bulkdocs)
-    _post(post_url, bulk_maindocs)
+    cmd = 'SELECT Name FROM "Systems" '
+    results = execute_cmd(cmd, True)
+    systems = [system[0] for system in results]
+    return systems
 
-    index_post_url = db_creds['url'] + "/questionstore/_index"
 
-    index_post(index_post_url, ["annotated", "ground_truth", "timestamp", "human_performance_rating"])
-    index_post(index_post_url, ["annotated", "ground_truth"])
-    index_post(index_post_url, ["annotated", "timestamp"])
-    index_post(index_post_url, ["annotated", "ground_truth", "timestamp", "on_topic"])
-    index_post(index_post_url, ["annotated", "ground_truth", "timestamp", "human_performance_rating", "PAU"])
-    index_post(index_post_url, ["answer", "ground_truth", "question"])
-    index_post(index_post_url, ["answer", "timestamp", "_id", "annotated", "on_topic", "human_performance_rating"])
+def get_question(system_name=None):
+    '''Get a random question from the given system'''
 
-    _put(db_creds['url'] + "/questionstore/_design/total_annotated", 
-        {
-            "_id": "total_annotated",
-            "views": {
-                "annotated": {
-                    "map" : "function (doc) {if(doc.annotated===true && doc.ground_truth===false) { emit(doc.annotated, doc.timestamp)}}"
-                },
-                "not_annotated": {
-                    "map" : "function (doc) {if(doc.annotated===false && doc.ground_truth===false) { emit(doc.annotated, doc.timestamp)}}"
-                }
-            }
-        }
-    )
+    if system_name and system_name != '':
+        cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\' AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'.format(system_name.upper())
+    else:
+        cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
 
-    _put(db_creds['url'] + "/questionstore/_design/similar-annotated",
-        {
-            "_id": "similar-annotated",
-            "views": {
-                "similar-annotated": {
-                    "map" : "function (doc) {if(doc.annotated===true && doc.on_topic=='true') {emit(doc.question, {'answer':doc.answer, 'performance':doc.human_performance_rating});}}"
-                }
-            }
-        }
-    )
+    qdata = execute_cmd(cmd, True)[0]
 
-    _put(db_creds['url'] + "/questionstore/_design/similar-ground-truth",
-        {
-            "_id": "similar-ground-truth",
-            "views": {
-                "similar-ground-truth": {
-                    "map" : "function (doc) {if(doc.ground_truth===true) {emit(doc.question, {'answer':doc.answer, 'on_topic':doc.on_topic});}}"
-                }
-            }
-        }
-    )
+    question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
+    return {'question': question, "similar": get_similar(qdata[2])}
 
-    return 'hello'
+
+def update_question(question_id, is_on_topic, human_performance_rating=0):
+    '''Update the annotation scores for the give question id'''
+
+    cmd = "UPDATE(SELECT * FROM \"Questions\" WHERE Question_ID='{0}') \
+        SET IS_ANNOTATED='{1}', IS_IN_PURVIEW='{2}', Annotation_Score='{3}'" \
+        .format(question_id, int(True), int(is_on_topic), human_performance_rating)
+    execute_cmd(cmd)
+
+
+def upload_questions(system_name, file):
+    '''Upload the questions in the file and link them to the given system'''
+    try:
+        init_database()
+    except:
+        pass
+    upload_id = _add_upload(system_name)
+    reader = csv.DictReader(file.read().splitlines())
+
+    params = []
+    for i, row in enumerate(reader):
+        par = row['QuestionText'].decode('latin-1'), row['TopAnswerText'].decode('latin-1'), row['TopAnswerConfidence'], upload_id
+        params.append(par)
+
+    cmd = "INSERT INTO \"Questions\" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)"
+
+    execute_many(cmd, params)
+
+
+def execute_cmd(cmd, fetch_results=False):
+    cursor = connect_to_db()
+    cursor.execute(cmd)
+    results = True
+    if fetch_results:
+        results = cursor.fetchall()
+    cursor.close()
+    return results
+
+
+def execute_many(cmd, parameters):
+
+    cursor = connect_to_db()
+    cursor.executemany(cmd, parameters)
+    cursor.close()
+
+
+def connect_to_db():
+    db = config.get('db2', 'db')
+    hostname = config.get('db2', 'hostname')
+    port = config.get('db2', 'port')
+    user = config.get('db2', 'username')
+    pw = config.get('db2', 'password')
+
+    connect_string = "DATABASE=" + db + ";HOSTNAME=" + hostname + ";PORT=" + port + ";UID=" + user + ";PWD=" + pw + ";"
+
+    db2conn = ibm_db.connect(connect_string, "", "")
+    conn = ibm_db_dbi.Connection(db2conn)
+
+    cursor = conn.cursor()
+    return cursor
+
+try:
+    init_database()
+except:
+    pass
