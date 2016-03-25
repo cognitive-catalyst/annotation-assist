@@ -72,9 +72,9 @@ export default class SystemSelector extends React.Component{
             component = React.findDOMNode(this.refs.component_wrapper),
             dropdown = React.findDOMNode(this.refs.dropdown);
 
-        document.removeEventListener("mouseup");
-        component.removeEventListener("mouseup");
-        dropdown.removeEventListener("mouseup");
+        document.removeEventListener("mouseup",this.closePopUp.bind(this));
+        component.removeEventListener("mouseup",function(event){event.stopPropagation()});
+        dropdown.removeEventListener("mouseup",this.togglePopUp.bind(this));
     }
 
     render(){
