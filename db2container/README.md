@@ -3,7 +3,7 @@
 If you do not have a db2 instance, these instructions should help you create one in a container on Bluemix. Make sure you have installed the stated dependencies before starting.
 
 ##Dependencies 
-- Cloud Foundry CLI  ([Install here](http://docs.cloudfoundry.org/cf-cli/install-go-cli.html)  )  
+- Cloud Foundry CLI version 6.12.0 or later ([Install here](http://docs.cloudfoundry.org/cf-cli/install-go-cli.html))  
 - Docker ([Install here](https://docs.docker.com/engine/installation/))
 
 ## Install Cloud Foundry Container plugin
