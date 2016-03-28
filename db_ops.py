@@ -229,6 +229,12 @@ def get_systems():
     return systems
 
 
+def get_exact_match(question, answer):
+    cmd = u"SELECT Is_In_Purview, Annotation_Score FROM \"Questions\" WHERE Question_Text='{0}' AND System_Answer='{1}' AND IS_ANNOTATED='1' ".format(question.replace("'", "''"), answer.replace("'", "''"))
+
+    return execute_cmd(cmd, True)
+
+
 def get_question(system_name=None):
     '''Get a random question from the given system'''
 
@@ -238,6 +244,11 @@ def get_question(system_name=None):
         cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
 
     qdata = execute_cmd(cmd, True)[0]
+
+    exact_match = get_exact_match(qdata[0], qdata[2])
+    if len(exact_match) != 0:
+        update_question(qdata[1], exact_match[0][0], exact_match[0][1])
+        return get_question(system_name)
 
     question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
     return {'question': question, "similar": get_similar(qdata[2])}
