@@ -6,6 +6,7 @@ Button = require('../button'),
 Form = require('./form'),
 Header = require('../header'),
 SystemSelector = require('../systemSelector'),
+$ = require('jquery'),
 
 Queries = React.createClass({
 

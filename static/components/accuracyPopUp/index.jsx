@@ -1,4 +1,6 @@
 import React from 'react'
+import Logo from 'img/watson-logo-blue.svg'
+import $ from 'jquery'
 
 export default class AccuracyPopUp extends React.Component{
 
@@ -48,7 +50,7 @@ export default class AccuracyPopUp extends React.Component{
                     <div className="pop-up" >
                         <div className="close" onClick={this.closePopUp.bind(this)}> &#10005; </div>
                         <div className="top-row">
-                            <img className="watson-logo" src="static/img/watson-logo-blue.svg" />
+                            <img className="watson-logo" src={Logo} />
                             <div className="pop-up-header">Help Improve Watson's Accuracy</div>
                         </div>
                         <div className="bottom-row">

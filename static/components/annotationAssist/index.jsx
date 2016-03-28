@@ -6,7 +6,7 @@ QueryCard        = require('../queryCard'),
 ResponseCard     = require('../responseCard'),
 SystemSelector   = require('../systemSelector'),
 Header           = require('../header'),
-
+$                = require('jquery'),
 
 AnnotationAssist =
 
@@ -69,7 +69,6 @@ React.createClass({
                         similar_conf = Math.max(similar_conf, q_data.similar[q][1])
                     }
 
-                    console.log(similar_conf)
                     this.setState({
                         new_questions: true,
                         initial_question: q_data.question.text,
@@ -153,7 +152,6 @@ React.createClass({
     },
 
     render: function() {
-        console.log(this.state.similar_conf)
         return (
 
             <div className='annotation-assist'>

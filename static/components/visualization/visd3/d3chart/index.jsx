@@ -128,7 +128,6 @@ export default class D3Chart extends React.Component{
         var el = React.findDOMNode(this);
         var dimensions = el.getBoundingClientRect();
 
-        console.log(dimensions)
 
         var squared_dimension = Math.max(300,Math.min(dimensions.height,dimensions.width));
 

@@ -7,13 +7,13 @@ module.exports = {
         historyApiFallback: true
     },
     resolve: {
-            modulesDirectories: ["node_modules", "static", "static/components/*"],
+            modulesDirectories: ["node_modules", "static"],
             extensions: ['', '.js', '.jsx']
         },
     entry: [
         // "webpack-dev-server/client?http://127.0.0.1:8080",
         // "webpack/hot/only-dev-server",
-        "./static/components/router.jsx"
+        "components/router.jsx"
     ],
     output: {
         path: __dirname + "/static/build/",
@@ -39,11 +39,11 @@ module.exports = {
                 exclude: /node_modules/
             },
             { test: /\.woff$/,   loader: "url-loader?limit=10000&minetype=application/font-woff" },
-            { test: /\.ttf$/,    loader: "file-loader" },
-            { test: /\.eot$/,    loader: "file-loader" },
-            { test: /\.svg$/,    loader: "file-loader" },
-            { test: /\.png$/,    loader: "file-loader" },
-            { test: /\.gif$/,    loader: "file-loader" }
+            { test: /\.ttf$/,    loader: "url-loader" },
+            { test: /\.eot$/,    loader: "url-loader" },
+            { test: /\.svg$/,    loader: "url-loader" },
+            { test: /\.png$/,    loader: "url-loader" },
+            { test: /\.gif$/,    loader: "url-loader" }
 
 
         ]

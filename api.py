@@ -66,19 +66,19 @@ def get_all_gt():
     vis_data = []
     for system in db_ops.get_systems():
         questions = db_ops.get_annotated(system)
+        if questions != []:
+            on_good = []
+            on_bad = []
+            off_topic = []
+            for q in questions:
+                if q['Is_In_Purview'] == 0:
+                    off_topic.append(q['Confidence'])
+                elif q['Annotation_Score'] > 50:
+                    on_good.append(q['Confidence'])
+                else:
+                    on_bad.append(q['Confidence'])
 
-        on_good = []
-        on_bad = []
-        off_topic = []
-        for q in questions:
-            if q['Is_In_Purview'] == 0:
-                off_topic.append(q['Confidence'])
-            elif q['Annotation_Score'] > 50:
-                on_good.append(q['Confidence'])
-            else:
-                on_bad.append(q['Confidence'])
-
-        vis_data.append(compute_roc_json(on_good, on_bad, off_topic, system))
+            vis_data.append(compute_roc_json(on_good, on_bad, off_topic, system))
 
     return json.dumps(vis_data)
 

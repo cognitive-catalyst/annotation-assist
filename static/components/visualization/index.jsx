@@ -1,6 +1,7 @@
 import React from 'react'
 import Display from './visd3'
-import Thinking from '../watson-thinking'
+import Thinking from 'img/watson-thinking-white.svg'
+import $ from 'jquery'
 
 export default class Sample extends React.Component{
 
@@ -42,7 +43,7 @@ export default class Sample extends React.Component{
         else{
             return (
                 <div className="display">
-                    <Thinking loading={true} height='100px' width='100px' />
+                    <img className="loading" src={Thinking}/>
                 </div>
             )
         }
