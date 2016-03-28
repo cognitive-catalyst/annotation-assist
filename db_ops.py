@@ -7,7 +7,7 @@ import os
 import ConfigParser
 
 
-# TODO: export gt needs to consider the checkbox variables
+# TODO: export needs to consider the checkbox variables
 
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
@@ -166,8 +166,6 @@ def _add_upload(system_name):
 def _add_question(question, upload_id):
     '''Add the given question to the table with foreign key upload_id'''
 
-    # question['QuestionText'].replace("'", "''").decode('utf-8')
-
     try:
         cmd = "INSERT INTO \"Questions\" (Question_Text,System_Answer,Confidence,Upload_ID) Values('{0}','{1}','{2}','{3}')" \
             .format(question['QuestionText'].replace("'", "''"), question['TopAnswerText'].replace("'", "''"), question['TopAnswerConfidence'], upload_id).decode('latin-1')
@@ -199,9 +197,9 @@ def get_percent(system_name=None):
     return float(annotated) / total * 100
 
 
-def export_annotated(system_name):
+def get_annotated(system_name):
 
-    output_fields = ["Question_ID", "Question_Text", "System_Answer", "Is_In_Purview", "Annotation_Score", "System_Name"]
+    output_fields = ["Question_ID", "Question_Text", "System_Answer", "Is_In_Purview", "Annotation_Score", "System_Name", "Confidence"]
 
     if system_name != '':
         cmd = 'SELECT {0} FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{1}\' AND IS_ANNOTATED=\'1\''.format(','.join(output_fields), system_name.upper())
@@ -225,7 +223,6 @@ def get_similar(answer):  # TODO: write this method
 
 
 def get_systems():
-
     cmd = 'SELECT Name FROM "Systems" '
     results = execute_cmd(cmd, True)
     systems = [system[0] for system in results]
@@ -252,6 +249,7 @@ def update_question(question_id, is_on_topic, human_performance_rating=0):
     cmd = "UPDATE(SELECT * FROM \"Questions\" WHERE Question_ID='{0}') \
         SET IS_ANNOTATED='{1}', IS_IN_PURVIEW='{2}', Annotation_Score='{3}'" \
         .format(question_id, int(True), int(is_on_topic), human_performance_rating)
+
     execute_cmd(cmd)
 
 

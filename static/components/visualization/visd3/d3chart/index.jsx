@@ -128,6 +128,8 @@ export default class D3Chart extends React.Component{
         var el = React.findDOMNode(this);
         var dimensions = el.getBoundingClientRect();
 
+        console.log(dimensions)
+
         var squared_dimension = Math.max(300,Math.min(dimensions.height,dimensions.width));
 
         var height = squared_dimension - vis_margin.left - vis_margin.right;
@@ -205,8 +207,8 @@ export default class D3Chart extends React.Component{
 
         this._draw_line(svg)
 
-        // var resize = this._resize.bind(this)
-        // svg.on('resize',resize)
+        var resize = this._resize.bind(this)
+        svg.on('resize',resize)
     }
 
     _draw_line(svg){
@@ -308,8 +310,6 @@ export default class D3Chart extends React.Component{
     }
 
     componentDidMount() {
-        // var resize = this._resize.bind(this)
-        // d3.select(window).on('resize',resize)
         this._draw()
     };
 

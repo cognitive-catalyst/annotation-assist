@@ -33,7 +33,7 @@ Questions = React.createClass({
             <div>
                 <p className='heading'>Watson thinks these are related queries...</p>
                 <SimilarQuestions questions={this.props.questions} />
-                <p className='user-question'>Is the users query similar to the questions above?</p>
+                <p className='user-question'>Does this question rephrase any of the above?</p>
 
                 <div className="similar-questions">
                    <Button onClick={this.props.similar} label="YES, THEY ARE SIMILAR" color='similar' />

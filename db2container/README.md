@@ -34,7 +34,7 @@ Push the [DB2 Express-c image](https://hub.docker.com/r/ibmcom/db2express-c/) to
 
 
 Start a bluemix container (named container). **Note: The password requirements are *extremely* strict. I recommend using a random character string (make sure to write it down as you will need it later)**   
-`cf ic run -it -p 50000:50000 -m 256 -e DB2INST1_PASSWORD=<password> -e LICENSE=accept --name container registry.ng.bluemix.net/<registry-name>/db2:latest bash`
+`cf ic run -p 50000:50000 -m 256 -e DB2INST1_PASSWORD=<password> -e LICENSE=accept --name container registry.ng.bluemix.net/<registry-name>/db2:latest bash`
 
 Periodically run the following command until you see the Status of your container is running. This should only take a minute or two.  
 `cf ic ps -a`

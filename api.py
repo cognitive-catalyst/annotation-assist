@@ -61,37 +61,38 @@ def topic():
     return 'done'
 
 
-def _get_gt(system_name):
-    return db_ops.export_annotated(system_name)
-
-
 @blueprint.route('/get_all_gt', methods=["POST", "GET"])
 def get_all_gt():
-    annotated = _get_gt({"annotated_good": True,
-                         "annotated_bad": True,
-                         "off_topic": True})
+    vis_data = []
+    for system in db_ops.get_systems():
+        questions = db_ops.get_annotated(system)
 
-    on_topic = [(float(q['confidence']), int(q['judgement'])) for q in annotated if q['judgement'].isdigit()]
-    off_topic = [float(q['confidence']) for q in annotated if q['judgement'] == "off topic"]
+        on_good = []
+        on_bad = []
+        off_topic = []
+        for q in questions:
+            if q['Is_In_Purview'] == 0:
+                off_topic.append(q['Confidence'])
+            elif q['Annotation_Score'] > 50:
+                on_good.append(q['Confidence'])
+            else:
+                on_bad.append(q['Confidence'])
 
-    on_good = [q[0] for q in on_topic if q[1] > 50]
-    on_bad = [q[0] for q in on_topic if q[1] < 50]
+        vis_data.append(compute_roc_json(on_good, on_bad, off_topic, system))
 
-    returned = json.dumps([compute_roc_json(on_good, on_bad, off_topic)])
-
-    return returned
+    return json.dumps(vis_data)
 
 
 def _encode_me(d):
     for key in d:
-        if type(d[key]) != int:
+        if type(d[key]) not in [int, float]:
             d[key] = d[key].encode('latin-1')
     return d
 
 
 @blueprint.route('/export_gt', methods=["POST", "GET"])
 def export_gt():
-    gt = db_ops.export_annotated(request.form['system-name'])
+    gt = db_ops.get_annotated(request.form['system-name'])
 
     buf = StringIO.StringIO()
     headers = gt[0].keys()
@@ -102,7 +103,11 @@ def export_gt():
         f.writerow(_encode_me(line))
     buf.seek(0)
 
-    return send_file(buf, as_attachment=True, attachment_filename='new_ground_truth.csv')
+    sys_name = request.form['system-name']
+    if sys_name == '':
+        sys_name = 'all'
+
+    return send_file(buf, as_attachment=True, attachment_filename='annotated_qa_{0}.csv'.format(sys_name))
 
 
 @blueprint.route('/get_percent', methods=["POST", "GET"])
@@ -165,10 +170,10 @@ def compute_roc_json(on_topic_good, on_topic_bad, off_topic, file_name=''):
         except:
             pfa = 100.0
 
-        roc_data.blueprintend([pfa, pta])
+        roc_data.append([pfa, pta])
 
         roc_interval = compute_interval(pta, num_on_topic + len(off_topic))
-        roc_conf_interval.blueprintend([pfa, pta + roc_interval, pta - roc_interval])
+        roc_conf_interval.append([pfa, pta + roc_interval, pta - roc_interval])
 
         answered_total = answered_correct + answered_incorrect
 
@@ -181,16 +186,16 @@ def compute_roc_json(on_topic_good, on_topic_bad, off_topic, file_name=''):
         except:
             questions_answered = 0.0
 
-        prec_data.blueprintend([questions_answered, precision])
+        prec_data.append([questions_answered, precision])
         prec_interval = compute_interval(precision, answered_correct + answered_incorrect)
         if prec_interval is not None:
-            prec_conf_interval.blueprintend([questions_answered, precision + prec_interval, precision - prec_interval])
+            prec_conf_interval.append([questions_answered, precision + prec_interval, precision - prec_interval])
 
     x_axis = []
     y_axis = []
     for i in roc_data:
-        x_axis.blueprintend(i[0])
-        y_axis.blueprintend(i[1])
+        x_axis.append(i[0])
+        y_axis.append(i[1])
     min_x = min(x_axis)
     max_x = max(x_axis)
     min_y = min(y_axis)

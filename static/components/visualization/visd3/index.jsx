@@ -261,6 +261,7 @@ export default class Display extends React.Component{
         this.setState({resize_toggle:new_val})
     }
     componentDidMount(){
+        // this.resize()
         window.onresize = this.resize.bind(this)
     }
 
