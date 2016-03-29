@@ -11,8 +11,6 @@ module.exports = {
             extensions: ['', '.js', '.jsx']
         },
     entry: [
-        // "webpack-dev-server/client?http://127.0.0.1:8080",
-        // "webpack/hot/only-dev-server",
         "components/router.jsx"
     ],
     output: {
@@ -20,9 +18,6 @@ module.exports = {
         filename: "bundle.js",
         publicPath: "static/build/"
     },
-    plugins: [
-        // new webpack.HotModuleReplacementPlugin(),
-    ],
     module: {
         loaders: [
             {
@@ -35,7 +30,7 @@ module.exports = {
             },
             {
                 test: /\.js.*$/,
-                loaders: ['babel-loader'],
+                loaders: ['babel'],
                 exclude: /node_modules/
             },
             { test: /\.woff$/,   loader: "url-loader?limit=10000&minetype=application/font-woff" },

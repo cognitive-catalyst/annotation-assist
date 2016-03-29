@@ -21,7 +21,7 @@
     "jquery-ui": "^1.10.5",
     "react": "^0.13.3",
     "react-router": "^1.0.0-rc1",
-    "react-slider": "^0.5.1",
+    "react-slider": "^0.5.1"
   },
   "devDependencies": {
     "babel-core": "^5.8.24",
