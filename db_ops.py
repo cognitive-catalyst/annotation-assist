@@ -5,7 +5,8 @@ import ibm_db_dbi
 import datetime
 import os
 import ConfigParser
-
+from StringIO import StringIO
+import tempfile
 
 # TODO: export needs to consider the checkbox variables
 
@@ -66,7 +67,7 @@ tables = {
             },
             {
                 'title': 'System_Answer',
-                'type': 'VARCHAR(10000)',
+                'type': 'VARCHAR(12000)',
                 'options': 'NOT NULL'
             },
             {
@@ -271,7 +272,11 @@ def upload_questions(system_name, file):
     except:
         pass
     upload_id = _add_upload(system_name)
-    reader = csv.DictReader(file.read().splitlines())
+
+    tmp = tempfile.TemporaryFile(mode='U+w')
+    tmp.write(file.read())
+    tmp.seek(0)
+    reader = csv.DictReader(tmp)
 
     params = []
     for i, row in enumerate(reader):
@@ -280,6 +285,7 @@ def upload_questions(system_name, file):
 
     cmd = "INSERT INTO \"Questions\" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)"
 
+    tmp.close()
     execute_many(cmd, params)
 
 
