@@ -1,3 +1,4 @@
+import logging
 import json
 import csv
 import ibm_db
@@ -106,7 +107,10 @@ tables = {
 def init_database():
     '''Initializes the database'''
     for name in table_names:
-        _create_table(name, tables[name])
+        try:
+            _create_table(name, tables[name])
+        except ibm_db_dbi.ProgrammingError:
+            logging.warning('Failed to create table %s. Table already exists.', name)
 
 
 def _create_table(name, options):
@@ -137,8 +141,9 @@ def delete_all():
         try:
             cmd = 'DROP TABLE "{0}";'.format(name)
             execute_cmd(cmd)
-        except:
-            print 'failed ' + name
+        except ibm_db_dbi.ProgrammingError:
+            logging.warning('Failed to delete table %s. Table does not exist.', name)
+
     init_database()
 
 
@@ -195,7 +200,11 @@ def get_percent(system_name=None):
 
     total = execute_cmd(cmd1, True)[0][0]
     annotated = execute_cmd(cmd2, True)[0][0]
-    return float(annotated) / total * 100
+
+    if total != 0:
+        return float(annotated) / total * 100
+    else:
+        return 0.0
 
 
 def get_annotated(system_name):
@@ -244,15 +253,18 @@ def get_question(system_name=None):
     else:
         cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
 
-    qdata = execute_cmd(cmd, True)[0]
+    result = execute_cmd(cmd, True)
+    if len(result) > 0:
+        qdata = result[0]
 
-    exact_match = get_exact_match(qdata[0], qdata[2])
-    if len(exact_match) != 0:
-        update_question(qdata[1], exact_match[0][0], exact_match[0][1])
-        return get_question(system_name)
+        exact_match = get_exact_match(qdata[0], qdata[2])
+        if len(exact_match) != 0:
+            update_question(qdata[1], exact_match[0][0], exact_match[0][1])
+            return get_question(system_name)
 
-    question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
-    return {'question': question, "similar": get_similar(qdata[2])}
+        question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
+        return {'question': question, "similar": get_similar(qdata[2])}
+    return False
 
 
 def update_question(question_id, is_on_topic, human_performance_rating=0):

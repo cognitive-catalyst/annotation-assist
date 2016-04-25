@@ -18,6 +18,13 @@ module.exports = {
         filename: "bundle.js",
         publicPath: "static/build/"
     },
+    plugins: [
+      new webpack.DefinePlugin({
+        'process.env': {
+          'NODE_ENV': '"production"'
+        }
+      })
+    ],
     module: {
         loaders: [
             {
