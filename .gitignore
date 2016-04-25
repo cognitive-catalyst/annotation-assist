@@ -8,5 +8,4 @@ static/.sass-cache
 static/.sass-cache/*
 static/sass/.sass-cache
 static/sass/.sass-cache/*
-static/build/*
 build/*

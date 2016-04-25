@@ -1,10 +1,10 @@
-
 var
 
 React = require('react/addons'),
 Button = require('../button'),
 AccuracyPopUp = require('../accuracyPopUp'),
-WatsonThinking   = require('../watson-thinking'),
+
+WatsonThinking   = require('img/watson-thinking.svg'),
 
 
 QueryCard = React.createClass({
@@ -42,7 +42,7 @@ QueryCard = React.createClass({
             <div className='query_card_background' style={{background: this.props.on_topic ? 'rgba(255,255,255, 0.5)' : 'white'}}>
                 <div className='card'>
                     <p className='heading'>User queried...</p>
-                    <WatsonThinking height='70' width='70' loading={this.props.loading}/>
+                    <img className="loading" style={{height:'70px',width:'70px',display: this.props.question ? 'none':''}}src={WatsonThinking}/>
                     <p className='question'>{this.props.question}</p>
                     <div className="purview" style= {this.props.new_questions ?  {display: 'block'} : {display: 'none'}}>
                         <Button onClick={this.withinPurview.bind(this, true, 0)} label="WITHIN PURVIEW" color='within-purview' loading={this.props.loading} active={purview_active}/>

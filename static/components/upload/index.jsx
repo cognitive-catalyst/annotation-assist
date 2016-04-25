@@ -2,7 +2,7 @@
 var
 React = require('react'),
 Header = require('../header'),
-Thinking = require('../watson-thinking'),
+Thinking = require('img/watson-thinking-white.svg'),
 $ = require('jquery'),
 ui = require('jquery-ui'),
 ui_style = require('jquery-ui/themes/smoothness/jquery-ui.css'),
@@ -52,7 +52,6 @@ Upload = React.createClass({
             type: "GET",
             success: function(resp) {
                 var systems = JSON.parse(resp).systems;
-                console.log(systems)
                 this.setState({systems:systems});
             }.bind(this)
         })
@@ -106,7 +105,6 @@ Upload = React.createClass({
           source: this.state.systems
         });
 
-        console.log(this.state.upload_status)
         return (
             <div className='container'>
                 <div className='uploads'>
@@ -120,23 +118,10 @@ Upload = React.createClass({
                             </label>
 
                             <span className="filename" style={{display: this.state.upload_status == 'not started' ? '':'none'}}>{this.state.log_uri}</span>
-                            <img className="loading" style={{display: this.state.upload_status == 'started' ? '':'none'}} src='static/img/watson-thinking-white.svg'/>
+                            <img className="loading" style={{display: this.state.upload_status == 'started' ? '':'none'}} src={Thinking}/>
                             <span className="filename" style={{display: this.state.upload_status == 'complete' ? '':'none'}} >&#10003; Upload Succeeded</span>
                             <span className="filename" style={{display: this.state.upload_status == 'failed' ? '':'none'}}>&#10007; Upload Failed</span>
 
-
-                            {/**(() => {
-                                switch(this.state.uploads_status) {
-                                    case 'not started':
-                                        return (<span className="filename" >{this.state.log_uri}</span>)
-                                    case 'started':
-                                        return (<img className="loading" src='static/img/watson-thinking-white.svg'/>)
-                                    case 'complete':
-                                        return (<span className="filename" >&#10003; Upload Succeeded</span>)
-                                    case 'failed':
-                                        return (<span className="filename" >&#10007; Upload Failed</span>)
-                                }
-                            })()*/}
                             <input className="btn" type="submit" value="Submit" />
                         </div>
                     </form>

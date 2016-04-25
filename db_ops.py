@@ -1,3 +1,4 @@
+import logging
 import json
 import csv
 import ibm_db
@@ -5,9 +6,10 @@ import ibm_db_dbi
 import datetime
 import os
 import ConfigParser
+from StringIO import StringIO
+import tempfile
 
-
-# TODO: export gt needs to consider the checkbox variables
+# TODO: export needs to consider the checkbox variables
 
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
@@ -61,12 +63,12 @@ tables = {
             },
             {
                 'title': 'Question_Text',
-                'type': 'VARCHAR(500)',
+                'type': 'VARCHAR(800)',
                 'options': 'NOT NULL'
             },
             {
                 'title': 'System_Answer',
-                'type': 'VARCHAR(10000)',
+                'type': 'VARCHAR(30000)',
                 'options': 'NOT NULL'
             },
             {
@@ -105,7 +107,10 @@ tables = {
 def init_database():
     '''Initializes the database'''
     for name in table_names:
-        _create_table(name, tables[name])
+        try:
+            _create_table(name, tables[name])
+        except ibm_db_dbi.ProgrammingError:
+            logging.warning('Failed to create table %s. Table already exists.', name)
 
 
 def _create_table(name, options):
@@ -136,8 +141,9 @@ def delete_all():
         try:
             cmd = 'DROP TABLE "{0}";'.format(name)
             execute_cmd(cmd)
-        except:
-            print 'failed ' + name
+        except ibm_db_dbi.ProgrammingError:
+            logging.warning('Failed to delete table %s. Table does not exist.', name)
+
     init_database()
 
 
@@ -165,8 +171,6 @@ def _add_upload(system_name):
 
 def _add_question(question, upload_id):
     '''Add the given question to the table with foreign key upload_id'''
-
-    # question['QuestionText'].replace("'", "''").decode('utf-8')
 
     try:
         cmd = "INSERT INTO \"Questions\" (Question_Text,System_Answer,Confidence,Upload_ID) Values('{0}','{1}','{2}','{3}')" \
@@ -196,12 +200,16 @@ def get_percent(system_name=None):
 
     total = execute_cmd(cmd1, True)[0][0]
     annotated = execute_cmd(cmd2, True)[0][0]
-    return float(annotated) / total * 100
+
+    if total != 0:
+        return float(annotated) / total * 100
+    else:
+        return 0.0
 
 
-def export_annotated(system_name):
+def get_annotated(system_name):
 
-    output_fields = ["Question_ID", "Question_Text", "System_Answer", "Is_In_Purview", "Annotation_Score", "System_Name"]
+    output_fields = ["Question_ID", "Question_Text", "System_Answer", "Is_In_Purview", "Annotation_Score", "System_Name", "Confidence"]
 
     if system_name != '':
         cmd = 'SELECT {0} FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{1}\' AND IS_ANNOTATED=\'1\''.format(','.join(output_fields), system_name.upper())
@@ -225,11 +233,16 @@ def get_similar(answer):  # TODO: write this method
 
 
 def get_systems():
-
     cmd = 'SELECT Name FROM "Systems" '
     results = execute_cmd(cmd, True)
     systems = [system[0] for system in results]
     return systems
+
+
+def get_exact_match(question, answer):
+    cmd = u"SELECT Is_In_Purview, Annotation_Score FROM \"Questions\" WHERE Question_Text='{0}' AND System_Answer='{1}' AND IS_ANNOTATED='1' ".format(question.replace("'", "''"), answer.replace("'", "''"))
+
+    return execute_cmd(cmd, True)
 
 
 def get_question(system_name=None):
@@ -240,10 +253,18 @@ def get_question(system_name=None):
     else:
         cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
 
-    qdata = execute_cmd(cmd, True)[0]
+    result = execute_cmd(cmd, True)
+    if len(result) > 0:
+        qdata = result[0]
 
-    question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
-    return {'question': question, "similar": get_similar(qdata[2])}
+        exact_match = get_exact_match(qdata[0], qdata[2])
+        if len(exact_match) != 0:
+            update_question(qdata[1], exact_match[0][0], exact_match[0][1])
+            return get_question(system_name)
+
+        question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
+        return {'question': question, "similar": get_similar(qdata[2])}
+    return False
 
 
 def update_question(question_id, is_on_topic, human_performance_rating=0):
@@ -252,6 +273,7 @@ def update_question(question_id, is_on_topic, human_performance_rating=0):
     cmd = "UPDATE(SELECT * FROM \"Questions\" WHERE Question_ID='{0}') \
         SET IS_ANNOTATED='{1}', IS_IN_PURVIEW='{2}', Annotation_Score='{3}'" \
         .format(question_id, int(True), int(is_on_topic), human_performance_rating)
+
     execute_cmd(cmd)
 
 
@@ -262,7 +284,11 @@ def upload_questions(system_name, file):
     except:
         pass
     upload_id = _add_upload(system_name)
-    reader = csv.DictReader(file.read().splitlines())
+
+    tmp = tempfile.TemporaryFile(mode='U+w')
+    tmp.write(file.read())
+    tmp.seek(0)
+    reader = csv.DictReader(tmp)
 
     params = []
     for i, row in enumerate(reader):
@@ -271,6 +297,7 @@ def upload_questions(system_name, file):
 
     cmd = "INSERT INTO \"Questions\" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)"
 
+    tmp.close()
     execute_many(cmd, params)
 
 

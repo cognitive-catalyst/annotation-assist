@@ -1,6 +1,7 @@
 import React from 'react'
 import Display from './visd3'
-import Thinking from '../watson-thinking'
+import Thinking from 'img/watson-thinking-white.svg'
+import $ from 'jquery'
 
 export default class Sample extends React.Component{
 
@@ -11,20 +12,11 @@ export default class Sample extends React.Component{
 
 
     componentDidMount(){
-        // this.setState({data:'tru'});
 
         this.getData();
     }
 
     getData(){
-        // var uri = 'http://wpef_backend.mybluemix.net/sample_data';
-        // var uri = '/api/get_all_gt'
-        // var xhr = new XMLHttpRequest();
-
-        // xhr.open("GET", uri, false);
-        // xhr.send();
-
-        // return JSON.parse(xhr.responseText)
 
         $.ajax({
                 url:  '/api/get_all_gt',
@@ -43,7 +35,6 @@ export default class Sample extends React.Component{
 
 
     render(){
-        console.log(this.state.data)
         if (this.state.data != undefined){
             return (
                 <Display data={this.state.data} />
@@ -52,7 +43,7 @@ export default class Sample extends React.Component{
         else{
             return (
                 <div className="display">
-                    <Thinking loading={true} height='100px' width='100px' />
+                    <img className="loading" src={Thinking}/>
                 </div>
             )
         }
