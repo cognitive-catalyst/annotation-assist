@@ -51897,30 +51897,6 @@
 	                    return _this.noAnnotations();
 	                }
 	            }
-	            // success: function(resp){
-	            //     console.log(resp)
-	            //     const q_data = JSON.parse(resp);
-
-	            //     let similar_questions = []
-	            //     let similar_conf = 0
-	            //     for (var q in q_data.similar){
-	            //         similar_questions.push(q_data.similar[q][0])
-	            //         similar_conf = Math.max(similar_conf, q_data.similar[q][1])
-	            //     }
-
-	            //     this.setState({
-	            //         new_questions: true,
-	            //         initial_question: q_data.question.text,
-	            //         other_questions: similar_questions,
-	            //         question_id: q_data.question.id,
-	            //         answer: q_data.question.answer,
-	            //         loading: false,
-	            //         similar_conf:similar_conf
-	            //     })
-	            // }.bind(this),
-	            // error: function() {
-	            //     this.noAnnotations();
-	            // }.bind(this)
 	        });
 	    },
 
