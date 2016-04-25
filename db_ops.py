@@ -62,12 +62,12 @@ tables = {
             },
             {
                 'title': 'Question_Text',
-                'type': 'VARCHAR(500)',
+                'type': 'VARCHAR(800)',
                 'options': 'NOT NULL'
             },
             {
                 'title': 'System_Answer',
-                'type': 'VARCHAR(12000)',
+                'type': 'VARCHAR(30000)',
                 'options': 'NOT NULL'
             },
             {
