@@ -38,7 +38,10 @@ def upload():
 def annotate():
     system_name = request.form['system_name']
     question_data = db_ops.get_question(system_name)
-    return json.dumps(question_data)
+    if question_data:
+        return Response(json.dumps(question_data), status=200)
+    else:
+        return Response(json.dumps({'message': 'no questions found'}), status=204)
 
 
 @blueprint.route('/get_systems', methods=["POST", "GET"])
