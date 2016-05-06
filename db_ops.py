@@ -1,12 +1,9 @@
 import logging
-import json
 import csv
 import ibm_db
 import ibm_db_dbi
 import datetime
-import os
 import ConfigParser
-from StringIO import StringIO
 import tempfile
 
 # TODO: export needs to consider the checkbox variables
@@ -110,7 +107,7 @@ def init_database():
         try:
             _create_table(name, tables[name])
         except ibm_db_dbi.ProgrammingError:
-            logging.warning('Failed to create table %s. Table already exists.', name)
+            logging.warning(' %s table already exists in database.', name)
 
 
 def _create_table(name, options):
@@ -175,7 +172,6 @@ def _add_question(question, upload_id):
     try:
         cmd = "INSERT INTO \"Questions\" (Question_Text,System_Answer,Confidence,Upload_ID) Values('{0}','{1}','{2}','{3}')" \
             .format(question['QuestionText'].replace("'", "''"), question['TopAnswerText'].replace("'", "''"), question['TopAnswerConfidence'], upload_id).decode('latin-1')
-
         execute_cmd(cmd)
     except:
         raise
@@ -226,9 +222,13 @@ def get_similar(answer):  # TODO: write this method
 
     output_fields = ["Question_Text", "Annotation_Score"]
 
-    cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
+    # cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
+    # cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
 
-    questions = execute_cmd(cmd, True)
+    cmd = "Select Question_Text, Annotation_Score FROM \"Questions\" WHERE System_Answer=? AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>? "
+    params = answer, acceptable_annotation_score - 1
+
+    questions = execute_cmd(cmd, True, params)
     return questions
 
 
@@ -263,7 +263,10 @@ def get_question(system_name=None):
             return get_question(system_name)
 
         question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
-        return {'question': question, "similar": get_similar(qdata[2])}
+        try:
+            return {'question': question, "similar": get_similar(qdata[2])}
+        except:
+            return {'question': question, "similar": []}
     return False
 
 
@@ -271,8 +274,7 @@ def update_question(question_id, is_on_topic, human_performance_rating=0):
     '''Update the annotation scores for the give question id'''
 
     cmd = "UPDATE(SELECT * FROM \"Questions\" WHERE Question_ID='{0}') \
-        SET IS_ANNOTATED='{1}', IS_IN_PURVIEW='{2}', Annotation_Score='{3}'" \
-        .format(question_id, int(True), int(is_on_topic), human_performance_rating)
+        SET IS_ANNOTATED='{1}', IS_IN_PURVIEW='{2}', Annotation_Score='{3}'".format(question_id, int(True), int(is_on_topic), human_performance_rating)
 
     execute_cmd(cmd)
 
@@ -301,10 +303,9 @@ def upload_questions(system_name, file):
     execute_many(cmd, params)
 
 
-def execute_cmd(cmd, fetch_results=False):
+def execute_cmd(cmd, fetch_results=False, parameters=None):
     cursor = connect_to_db()
-    cursor.execute(cmd)
-    results = True
+    cursor.execute(cmd, parameters)
     if fetch_results:
         results = cursor.fetchall()
     cursor.close()

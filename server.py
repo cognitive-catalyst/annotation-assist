@@ -1,4 +1,4 @@
-from flask import Flask, request, Response, send_file, redirect, send_from_directory, Blueprint
+from flask import Flask, request, Response, send_from_directory
 from functools import wraps
 import ConfigParser
 import api
@@ -53,5 +53,5 @@ def bundle():
 
 
 if __name__ == '__main__':
-    port = os.getenv('VCAP_APP_PORT', '8000')
+    port = os.getenv('VCAP_APP_PORT', '8080')
     app.run(host='0.0.0.0', port=int(port), debug=True, processes=4)
