@@ -7,7 +7,7 @@ module.exports = {
         historyApiFallback: true
     },
     resolve: {
-            modulesDirectories: ["node_modules", "static"],
+            modulesDirectories: ["node_modules", "static","static/components"],
             extensions: ['', '.js', '.jsx']
         },
     entry: [

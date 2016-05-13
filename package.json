@@ -4,6 +4,7 @@
   "description": "INTRODUCTION ------------",
   "main": "index.js",
   "scripts": {
+    "debug": "webpack --watch -f webpack.debug.config.js",
     "dev": "webpack-dev-server",
     "build": "node node_modules/webpack/bin/webpack.js --colors --progress -p"
   },

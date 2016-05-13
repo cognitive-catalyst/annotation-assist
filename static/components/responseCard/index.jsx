@@ -1,12 +1,9 @@
+import React from 'react';
+import Button from 'button';
 
-var
+class SimilarQuestions extends React.Component{
 
-React = require('react/addons'),
-Button = require('../button'),
-
-SimilarQuestions = React.createClass({
-
-    render: function() {
+    render() {
 
         if(this.props.questions.length){
             var rows = this.props.questions.map(function(item, i){
@@ -22,11 +19,11 @@ SimilarQuestions = React.createClass({
             </ol>
         );
     }
-}),
+}
 
-Questions = React.createClass({
+class Questions extends React.Component{
 
-    render: function() {
+    render() {
 
         return (
 
@@ -42,33 +39,39 @@ Questions = React.createClass({
             </div>
         );
     }
-}),
+}
 
-Answers = React.createClass({
+class Answers extends React.Component{
 
-    getInitialState: function(){
-        return {
-            disabled: true,
-            allActive: [false, false, false, false]
+    constructor(props){
+        super(props)
+
+        this.state = {
+            score:undefined
         }
-    },
+    }
 
-     allActive: function(score, buttonId){
-
-        var activeButtons = [false,false,false,false];
-            activeButtons[buttonId] = true;
-            this.props.perf(score)
-            this.setState({allActive: activeButtons, disabled: false });
-     },
-
-     submitReset: function() {
-        this.props.submit();
+     submit() {
+        this.props.submit(this.state.score);
         this.setState({
-            allActive: [false,false,false,false]
+            score: undefined
         })
-     },
+     }
 
-    render: function(){
+    render(){
+
+        let labels = [
+            ['Wrong',0],
+            ['Poor',20],
+            ['Decent',80],
+            ['Perfect',100]
+        ]
+
+        let judgementButtons = labels.map((label) => {
+            return (
+                <Button label={label[0]} active ={label[1] == this.state.score} onClick={() => this.setState({score:label[1]}) }/>
+            )
+        })
 
         var answer = this.props.answer;
 
@@ -79,20 +82,17 @@ Answers = React.createClass({
                 <div className='answer' dangerouslySetInnerHTML={{__html: answer}}></div>
 
                 <div className='button-group'>
-                    <Button onClick={this.allActive.bind(this,0,0)} label='Wrong' color='wrong' active={this.state.allActive[0]}/>
-                    <Button onClick={this.allActive.bind(this,20,1)} label='Poor' color='Poor' active={this.state.allActive[1]}/>
-                    <Button onClick={this.allActive.bind(this,80,2)} label='Decent' color='Decent' active={this.state.allActive[2]}/>
-                    <Button onClick={this.allActive.bind(this,100,3)} label='Perfect' color='Perfect' active={this.state.allActive[3]}/>
-                    <Button onClick={this.submitReset.bind(this)} label='Submit'  color='Submit' disabled={this.state.disabled}/>
+                    {judgementButtons}
+                    <Button onClick={this.submit.bind(this)} label='Submit'  color='Submit' disabled={this.state.score == undefined}/>
                 </div>
             </div>
         );
     }
-}),
+}
 
-ResponseCard = React.createClass({
+export default class ResponseCard extends React.Component{
 
-    render: function() {
+    render() {
         return (
             <div className='response-card'>
 
@@ -104,6 +104,4 @@ ResponseCard = React.createClass({
             </div>
         );
     }
-});
-
-module.exports = ResponseCard;
+};

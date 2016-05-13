@@ -1,14 +1,13 @@
-from flask import Flask, request, Blueprint, send_file, Response
-
-import csv
-import os
-import json
-import StringIO
-import db_ops
-import datetime
-import time
 import ConfigParser
+import csv
+import json
 import math
+import os
+import StringIO
+
+from flask import Blueprint, Response, request, send_file
+
+import db_ops
 
 blueprint = Blueprint("api", __name__)
 config = ConfigParser.ConfigParser()
@@ -34,10 +33,19 @@ def upload():
     return Response(json.dumps({'message': 'Upload Successful'}), status=200)
 
 
-@blueprint.route('/get_question', methods=["POST", "GET"])
+@blueprint.route('/get_question', methods=["POST"])
 def annotate():
     system_name = request.form['system_name']
     question_data = db_ops.get_question(system_name)
+    if question_data:
+        return Response(json.dumps(question_data), status=200)
+    else:
+        return Response(json.dumps({'message': 'no questions found'}), status=204)
+
+
+@blueprint.route('/get_question/<path:q_id>', methods=["GET"])
+def get_question_from_id(q_id):
+    question_data = db_ops.get_question_from_id(q_id)
     if question_data:
         return Response(json.dumps(question_data), status=200)
     else:
@@ -50,7 +58,7 @@ def get_systems():
     return json.dumps({'systems': systems})
 
 
-@blueprint.route('/topic', methods=["POST", "GET"])
+@blueprint.route('/update', methods=["POST", "GET"])
 def topic():
     question_id = request.form['_id']
     is_on_topic = request.form['on_topic']

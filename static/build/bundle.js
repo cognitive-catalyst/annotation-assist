@@ -26157,7 +26157,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	 * jQuery JavaScript Library v2.2.2
+	 * jQuery JavaScript Library v2.2.3
 	 * http://jquery.com/
 	 *
 	 * Includes Sizzle.js
@@ -26167,7 +26167,7 @@
 	 * Released under the MIT license
 	 * http://jquery.org/license
 	 *
-	 * Date: 2016-03-17T17:51Z
+	 * Date: 2016-04-05T19:26Z
 	 */
 
 	(function( global, factory ) {
@@ -26223,7 +26223,7 @@
 
 
 	var
-		version = "2.2.2",
+		version = "2.2.3",
 
 		// Define a local copy of jQuery
 		jQuery = function( selector, context ) {
@@ -35633,7 +35633,7 @@
 			// If it fails, this function gets "jqXHR", "status", "error"
 			} ).always( callback && function( jqXHR, status ) {
 				self.each( function() {
-					callback.apply( self, response || [ jqXHR.responseText, status, jqXHR ] );
+					callback.apply( this, response || [ jqXHR.responseText, status, jqXHR ] );
 				} );
 			} );
 		}
@@ -51813,193 +51813,288 @@
 
 	'use strict';
 
-	var React = __webpack_require__(2),
-	    Button = __webpack_require__(245),
-	    QueryCard = __webpack_require__(249),
-	    ResponseCard = __webpack_require__(253),
-	    SystemSelector = __webpack_require__(247),
-	    Header = __webpack_require__(219),
-	    $ = __webpack_require__(224),
-	    AnnotationAssist = React.createClass({
-	    displayName: 'AnnotationAssist',
-
-	    getInitialState: function getInitialState() {
-
-	        return {
-	            initial_question: '',
-	            other_questions: [],
-	            new_questions: true,
-	            answer: '',
-	            human_performance: 'null',
-	            on_topic: false,
-	            loading: false,
-	            systems: [],
-	            current_system: 'ALL SYSTEMS'
-
-	        };
-	    },
-
-	    getSystems: function getSystems() {
-	        $.ajax({
-	            url: '/api/get_systems',
-	            type: "GET",
-	            success: (function (resp) {
-	                var systems = ['ALL SYSTEMS'].concat(JSON.parse(resp).systems);
-	                this.setState({ systems: systems });
-	            }).bind(this)
-	        });
-	    },
-
-	    noAnnotations: function noAnnotations() {
-	        this.setState({
-	            new_questions: false,
-	            loading: false,
-	            initial_question: "NO QUESTIONS TO ANNOTATE"
-	        });
-	    },
-
-	    newQuestion: function newQuestion() {
-	        var _this = this;
-
-	        this.setState({
-	            answer: '',
-	            initial_question: '',
-	            other_questions: [],
-	            on_topic: false,
-	            loading: true
-	        });
-	        $.ajax({
-	            url: '/api/get_question',
-	            type: "POST",
-	            data: { system_name: this.state.current_system == "ALL SYSTEMS" ? '' : this.state.current_system },
-	            statusCode: {
-	                200: function _(resp) {
-	                    var q_data = JSON.parse(resp);
-
-	                    var similar_questions = [];
-	                    var similar_conf = 0;
-	                    for (var q in q_data.similar) {
-	                        similar_questions.push(q_data.similar[q][0]);
-	                        similar_conf = Math.max(similar_conf, q_data.similar[q][1]);
-	                    }
-
-	                    _this.setState({
-	                        new_questions: true,
-	                        initial_question: q_data.question.text,
-	                        other_questions: similar_questions,
-	                        question_id: q_data.question.id,
-	                        answer: q_data.question.answer,
-	                        loading: false,
-	                        similar_conf: similar_conf
-	                    });
-	                },
-	                204: function _() {
-	                    return _this.noAnnotations();
-	                }
-	            }
-	        });
-	    },
-
-	    componentWillMount: function componentWillMount() {
-	        this.getSystems();
-	        this.newQuestion();
-	    },
-
-	    changePerformance: function changePerformance(perf) {
-	        this.setState({ human_performance: perf });
-	    },
-
-	    notSimilar: function notSimilar() {
-	        this.setState({ other_questions: [] });
-	    },
-
-	    similarToOthers: function similarToOthers(perf) {
-	        this.newQuestion();
-	        $.ajax({
-	            url: '/api/topic',
-	            type: "POST",
-	            data: { _id: this.state.question_id,
-	                on_topic: true,
-	                human_performance: this.state.similar_conf
-	            },
-	            success: (function (data) {
-	                // this.newQuestion();
-	            }).bind(this)
-	        });
-	    },
-
-	    onTopic: function onTopic() {
-	        this.setState({
-	            on_topic: true
-	        });
-	    },
-
-	    offTopic: function offTopic() {
-	        $.ajax({
-	            url: '/api/topic',
-	            type: "POST",
-	            data: { _id: this.state.question_id,
-	                on_topic: false,
-	                human_performance: 0
-	            },
-	            success: (function (data) {
-	                this.newQuestion();
-	            }).bind(this)
-	        });
-	    },
-
-	    submitToDB: function submitToDB() {
-	        $.ajax({
-	            url: '/api/topic',
-	            type: "POST",
-	            data: { _id: this.state.question_id,
-	                on_topic: this.state.on_topic,
-	                human_performance: this.state.human_performance
-	            },
-	            success: (function (data) {
-	                this.newQuestion();
-	            }).bind(this)
-	        });
-	    },
-
-	    changeActiveSystem: function changeActiveSystem(new_system) {
-	        this.setState({ current_system: new_system }, this.newQuestion);
-	    },
-
-	    render: function render() {
-	        return React.createElement(
-	            'div',
-	            { className: 'annotation-assist' },
-	            React.createElement(SystemSelector, {
-	                current_system: this.state.current_system,
-	                options: this.state.systems,
-	                updateSystem: this.changeActiveSystem }),
-	            React.createElement(QueryCard, { question: this.state.initial_question,
-	                onTopic: this.onTopic,
-	                offTopic: this.offTopic,
-	                on_topic: this.state.on_topic,
-	                loading: this.state.loading,
-	                new_questions: this.state.new_questions }),
-	            React.createElement(
-	                'div',
-	                { style: this.state.on_topic ? { zIndex: -1 } : { display: 'none' } },
-	                React.createElement(ResponseCard, { answer: this.state.answer,
-	                    other_questions: this.state.other_questions,
-	                    similar: this.similarToOthers,
-	                    notSimilar: this.notSimilar,
-	                    changePerformance: this.changePerformance,
-	                    submitToDB: this.submitToDB })
-	            ),
-	            React.createElement(
-	                'div',
-	                { className: 'skip-query', onClick: this.newQuestion, style: this.state.loading ? { display: 'none' } : { display: 'block' } },
-	                'Skip This Query'
-	            )
-	        );
-	    }
+	Object.defineProperty(exports, '__esModule', {
+	    value: true
 	});
 
-	module.exports = AnnotationAssist;
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _reactAddons = __webpack_require__(2);
+
+	var _reactAddons2 = _interopRequireDefault(_reactAddons);
+
+	var _button = __webpack_require__(245);
+
+	var _button2 = _interopRequireDefault(_button);
+
+	var _queryCard = __webpack_require__(249);
+
+	var _queryCard2 = _interopRequireDefault(_queryCard);
+
+	var _responseCard = __webpack_require__(253);
+
+	var _responseCard2 = _interopRequireDefault(_responseCard);
+
+	var _systemSelector = __webpack_require__(247);
+
+	var _systemSelector2 = _interopRequireDefault(_systemSelector);
+
+	var _header = __webpack_require__(219);
+
+	var _header2 = _interopRequireDefault(_header);
+
+	var _jquery = __webpack_require__(224);
+
+	var _jquery2 = _interopRequireDefault(_jquery);
+
+	var ON_TOPIC_INITIALIZED = true;
+
+	var AnnotationAssist = (function (_React$Component) {
+	    _inherits(AnnotationAssist, _React$Component);
+
+	    function AnnotationAssist(props) {
+	        _classCallCheck(this, AnnotationAssist);
+
+	        _get(Object.getPrototypeOf(AnnotationAssist.prototype), 'constructor', this).call(this, props);
+
+	        this.state = {
+	            previousQuestionId: undefined,
+	            questionId: '',
+	            questionText: '',
+	            answer: '',
+
+	            similarQuestions: [],
+	            similarConf: undefined,
+	            new_questions: true,
+	            onTopicClicked: ON_TOPIC_INITIALIZED,
+	            current_system: 'ALL SYSTEMS',
+	            systems: [],
+
+	            loading: false
+	        };
+	    }
+
+	    _createClass(AnnotationAssist, [{
+	        key: 'getSystems',
+	        value: function getSystems() {
+	            _jquery2['default'].ajax({
+	                url: '/api/get_systems',
+	                type: "GET",
+	                success: (function (resp) {
+	                    var systems = ['ALL SYSTEMS'].concat(JSON.parse(resp).systems);
+	                    this.setState({ systems: systems });
+	                }).bind(this)
+	            });
+	        }
+	    }, {
+	        key: 'noAnnotations',
+	        value: function noAnnotations() {
+	            this.setState({
+	                new_questions: false,
+	                loading: false,
+	                QuestionText: "NO QUESTIONS TO ANNOTATE"
+	            });
+	        }
+	    }, {
+	        key: 'setNewQuestion',
+	        value: function setNewQuestion(resp) {
+	            var q_data = JSON.parse(resp);
+
+	            var similar_questions = [];
+	            var similar_conf = 0;
+	            for (var q in q_data.similar) {
+	                similar_questions.push(q_data.similar[q][0]);
+	                similar_conf = Math.max(similar_conf, q_data.similar[q][1]);
+	            }
+
+	            this.setState({
+	                new_questions: true,
+	                QuestionText: q_data.question.text,
+	                similarQuestions: similar_questions,
+	                questionId: q_data.question.id,
+	                answer: q_data.question.answer,
+	                loading: false,
+	                similarConf: similar_conf
+	            });
+	        }
+	    }, {
+	        key: 'getPreviousQuestion',
+	        value: function getPreviousQuestion() {
+	            var _this = this;
+
+	            _jquery2['default'].ajax({
+	                url: '/api/get_question/' + this.state.previousQuestionId,
+	                type: "GET",
+	                statusCode: {
+	                    200: function _(resp) {
+	                        return _this.setNewQuestion(resp);
+	                    },
+	                    204: function _() {
+	                        return _this.noAnnotations();
+	                    }
+	                }
+	            });
+	            this.setState({
+	                previousQuestionId: undefined,
+	                answer: '',
+	                QuestionText: '',
+	                similarQuestions: [],
+	                onTopicClicked: ON_TOPIC_INITIALIZED,
+	                loading: true
+	            });
+	        }
+	    }, {
+	        key: 'newQuestion',
+	        value: function newQuestion() {
+	            var _this2 = this;
+
+	            _jquery2['default'].ajax({
+	                url: '/api/get_question',
+	                type: "POST",
+	                data: { system_name: this.state.current_system == "ALL SYSTEMS" ? '' : this.state.current_system },
+	                statusCode: {
+	                    200: function _(resp) {
+	                        return _this2.setNewQuestion(resp);
+	                    },
+	                    204: function _() {
+	                        return _this2.noAnnotations();
+	                    }
+	                }
+	            });
+	            this.setState({
+	                answer: '',
+	                QuestionText: '',
+	                similarQuestions: [],
+	                onTopicClicked: ON_TOPIC_INITIALIZED,
+	                loading: true
+	            });
+	        }
+	    }, {
+	        key: 'componentWillMount',
+	        value: function componentWillMount() {
+	            this.getSystems();
+	            this.newQuestion();
+	        }
+	    }, {
+	        key: 'notSimilar',
+	        value: function notSimilar() {
+	            this.setState({ similarQuestions: [] });
+	        }
+	    }, {
+	        key: 'similarToOthers',
+	        value: function similarToOthers(perf) {
+	            this.submitToDB(perf);
+	        }
+	    }, {
+	        key: 'onTopic',
+	        value: function onTopic() {
+	            this.setState({
+	                onTopicClicked: true
+	            });
+	        }
+	    }, {
+	        key: 'offTopic',
+	        value: function offTopic() {
+	            this.setState({
+	                previousQuestionId: this.state.questionId
+	            });
+
+	            _jquery2['default'].ajax({
+	                url: '/api/update',
+	                type: "POST",
+	                data: { _id: this.state.questionId,
+	                    on_topic: false,
+	                    human_performance: 0
+	                },
+	                error: (function () {
+	                    console.log("there has been an error"); //TODO: DISPLAY ERRORS?
+	                }).bind(this)
+	            });
+
+	            this.newQuestion();
+	        }
+	    }, {
+	        key: 'submitToDB',
+	        value: function submitToDB(performance) {
+	            this.setState({
+	                previousQuestionId: this.state.questionId
+	            });
+	            _jquery2['default'].ajax({
+	                url: '/api/update',
+	                type: "POST",
+	                data: { _id: this.state.questionId,
+	                    on_topic: this.state.onTopicClicked,
+	                    human_performance: performance
+	                },
+	                error: (function (data) {
+	                    console.log("there has been an error"); //TODO: DISPLAY ERRORS?
+	                }).bind(this)
+	            });
+
+	            this.newQuestion();
+	        }
+	    }, {
+	        key: 'changeActiveSystem',
+	        value: function changeActiveSystem(new_system) {
+	            this.setState({ current_system: new_system }, this.newQuestion);
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            return _reactAddons2['default'].createElement(
+	                'div',
+	                { className: 'annotation-assist' },
+	                _reactAddons2['default'].createElement(
+	                    'div',
+	                    { className: 'top-row' },
+	                    _reactAddons2['default'].createElement(
+	                        'a',
+	                        { className: this.state.previousQuestionId != undefined ? 'get-previous active' : 'get-previous', onClick: this.state.previousQuestionId != undefined ? this.getPreviousQuestion.bind(this) : '' },
+	                        '← See Previous'
+	                    ),
+	                    _reactAddons2['default'].createElement(_systemSelector2['default'], {
+	                        current_system: this.state.current_system,
+	                        options: this.state.systems,
+	                        updateSystem: this.changeActiveSystem.bind(this) })
+	                ),
+	                _reactAddons2['default'].createElement(_queryCard2['default'], { question: this.state.QuestionText,
+	                    onTopic: this.onTopic.bind(this),
+	                    offTopic: this.offTopic.bind(this),
+	                    on_topic: this.state.onTopicClicked,
+	                    loading: this.state.loading,
+	                    new_questions: this.state.new_questions }),
+	                _reactAddons2['default'].createElement(
+	                    'div',
+	                    { style: this.state.onTopicClicked & !this.state.loading ? { zIndex: -1 } : { display: 'none' } },
+	                    _reactAddons2['default'].createElement(_responseCard2['default'], { answer: this.state.answer,
+	                        other_questions: this.state.similarQuestions,
+	                        similar: this.similarToOthers.bind(this),
+	                        notSimilar: this.notSimilar.bind(this),
+	                        submitToDB: this.submitToDB.bind(this) })
+	                ),
+	                _reactAddons2['default'].createElement(
+	                    'div',
+	                    { className: 'skip-query', onClick: this.newQuestion.bind(this), style: this.state.loading ? { display: 'none' } : { display: 'block' } },
+	                    'Skip This Query'
+	                )
+	            );
+	        }
+	    }]);
+
+	    return AnnotationAssist;
+	})(_reactAddons2['default'].Component);
+
+	exports['default'] = AnnotationAssist;
+	;
+	module.exports = exports['default'];
 
 /***/ },
 /* 249 */
@@ -52025,26 +52120,13 @@
 	    },
 
 	    withinPurview: function withinPurview(on_topic, buttonId) {
-	        var activeButtons = [false, false];
-
-	        activeButtons[buttonId] = true;
-	        this.setState({ allActive: activeButtons });
-
 	        on_topic ? this.props.onTopic() : this.props.offTopic();
 	    },
 
 	    render: function render() {
-	        if (!this.props.on_topic) {
-	            var purview_active = false;
-	            var not_purview_active = false;
-	        } else {
-	            var purview_active = this.state.allActive[0];
-	            var not_purview_active = this.state.allActive[1];
-	        }
-
 	        return React.createElement(
 	            'div',
-	            { className: 'query_card_background', style: { background: this.props.on_topic ? 'rgba(255,255,255, 0.5)' : 'white' } },
+	            { className: 'query_card_background', style: { background: this.props.on_topic & !this.props.loading ? 'rgba(255,255,255, 0.5)' : 'white' } },
 	            React.createElement(
 	                'div',
 	                { className: 'card' },
@@ -52062,8 +52144,8 @@
 	                React.createElement(
 	                    'div',
 	                    { className: 'purview', style: this.props.new_questions ? { display: 'block' } : { display: 'none' } },
-	                    React.createElement(Button, { onClick: this.withinPurview.bind(this, true, 0), label: 'WITHIN PURVIEW', color: 'within-purview', loading: this.props.loading, active: purview_active }),
-	                    React.createElement(Button, { onClick: this.withinPurview.bind(this, false, 1), label: 'OUTSIDE OF PURVIEW', color: 'outside-of-purview', loading: this.props.loading, active: not_purview_active }),
+	                    React.createElement(Button, { onClick: this.withinPurview.bind(this, true, 0), label: 'WITHIN PURVIEW', color: 'within-purview', loading: this.props.loading, active: this.props.on_topic }),
+	                    React.createElement(Button, { onClick: this.withinPurview.bind(this, false, 1), label: 'OUTSIDE OF PURVIEW', color: 'outside-of-purview', loading: this.props.loading, active: false }),
 	                    React.createElement(AccuracyPopUp, { loading: this.props.loading })
 	                )
 	            )
@@ -52284,125 +52366,190 @@
 
 	'use strict';
 
-	var React = __webpack_require__(2),
-	    Button = __webpack_require__(245),
-	    SimilarQuestions = React.createClass({
-	    displayName: 'SimilarQuestions',
-
-	    render: function render() {
-
-	        if (this.props.questions.length) {
-	            var rows = this.props.questions.map(function (item, i) {
-	                return React.createElement(
-	                    'li',
-	                    { className: 'other-question' },
-	                    item
-	                );
-	            });
-	        }
-
-	        return React.createElement(
-	            'ol',
-	            { className: 'other-question-container' },
-	            rows
-	        );
-	    }
-	}),
-	    Questions = React.createClass({
-	    displayName: 'Questions',
-
-	    render: function render() {
-
-	        return React.createElement(
-	            'div',
-	            null,
-	            React.createElement(
-	                'p',
-	                { className: 'heading' },
-	                'Watson thinks these are related queries...'
-	            ),
-	            React.createElement(SimilarQuestions, { questions: this.props.questions }),
-	            React.createElement(
-	                'p',
-	                { className: 'user-question' },
-	                'Does this question rephrase any of the above?'
-	            ),
-	            React.createElement(
-	                'div',
-	                { className: 'similar-questions' },
-	                React.createElement(Button, { onClick: this.props.similar, label: 'YES, THEY ARE SIMILAR', color: 'similar' }),
-	                React.createElement(Button, { onClick: this.props.notSimilar, label: 'NO, NOT RELATED', color: 'not-similar' })
-	            )
-	        );
-	    }
-	}),
-	    Answers = React.createClass({
-	    displayName: 'Answers',
-
-	    getInitialState: function getInitialState() {
-	        return {
-	            disabled: true,
-	            allActive: [false, false, false, false]
-	        };
-	    },
-
-	    allActive: function allActive(score, buttonId) {
-
-	        var activeButtons = [false, false, false, false];
-	        activeButtons[buttonId] = true;
-	        this.props.perf(score);
-	        this.setState({ allActive: activeButtons, disabled: false });
-	    },
-
-	    submitReset: function submitReset() {
-	        this.props.submit();
-	        this.setState({
-	            allActive: [false, false, false, false]
-	        });
-	    },
-
-	    render: function render() {
-
-	        var answer = this.props.answer;
-
-	        return React.createElement(
-	            'div',
-	            null,
-	            React.createElement(
-	                'p',
-	                { className: 'heading' },
-	                'Watson responded...'
-	            ),
-	            React.createElement('div', { className: 'answer', dangerouslySetInnerHTML: { __html: answer } }),
-	            React.createElement(
-	                'div',
-	                { className: 'button-group' },
-	                React.createElement(Button, { onClick: this.allActive.bind(this, 0, 0), label: 'Wrong', color: 'wrong', active: this.state.allActive[0] }),
-	                React.createElement(Button, { onClick: this.allActive.bind(this, 20, 1), label: 'Poor', color: 'Poor', active: this.state.allActive[1] }),
-	                React.createElement(Button, { onClick: this.allActive.bind(this, 80, 2), label: 'Decent', color: 'Decent', active: this.state.allActive[2] }),
-	                React.createElement(Button, { onClick: this.allActive.bind(this, 100, 3), label: 'Perfect', color: 'Perfect', active: this.state.allActive[3] }),
-	                React.createElement(Button, { onClick: this.submitReset.bind(this), label: 'Submit', color: 'Submit', disabled: this.state.disabled })
-	            )
-	        );
-	    }
-	}),
-	    ResponseCard = React.createClass({
-	    displayName: 'ResponseCard',
-
-	    render: function render() {
-	        return React.createElement(
-	            'div',
-	            { className: 'response-card' },
-	            React.createElement(
-	                'div',
-	                { className: 'card' },
-	                this.props.other_questions.length ? React.createElement(Questions, { questions: this.props.other_questions, similar: this.props.similar, notSimilar: this.props.notSimilar }) : React.createElement(Answers, { answer: this.props.answer, perf: this.props.changePerformance, submit: this.props.submitToDB })
-	            )
-	        );
-	    }
+	Object.defineProperty(exports, '__esModule', {
+	    value: true
 	});
 
-	module.exports = ResponseCard;
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _react = __webpack_require__(172);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _button = __webpack_require__(245);
+
+	var _button2 = _interopRequireDefault(_button);
+
+	var SimilarQuestions = (function (_React$Component) {
+	    _inherits(SimilarQuestions, _React$Component);
+
+	    function SimilarQuestions() {
+	        _classCallCheck(this, SimilarQuestions);
+
+	        _get(Object.getPrototypeOf(SimilarQuestions.prototype), 'constructor', this).apply(this, arguments);
+	    }
+
+	    _createClass(SimilarQuestions, [{
+	        key: 'render',
+	        value: function render() {
+
+	            if (this.props.questions.length) {
+	                var rows = this.props.questions.map(function (item, i) {
+	                    return _react2['default'].createElement(
+	                        'li',
+	                        { className: 'other-question' },
+	                        item
+	                    );
+	                });
+	            }
+
+	            return _react2['default'].createElement(
+	                'ol',
+	                { className: 'other-question-container' },
+	                rows
+	            );
+	        }
+	    }]);
+
+	    return SimilarQuestions;
+	})(_react2['default'].Component);
+
+	var Questions = (function (_React$Component2) {
+	    _inherits(Questions, _React$Component2);
+
+	    function Questions() {
+	        _classCallCheck(this, Questions);
+
+	        _get(Object.getPrototypeOf(Questions.prototype), 'constructor', this).apply(this, arguments);
+	    }
+
+	    _createClass(Questions, [{
+	        key: 'render',
+	        value: function render() {
+
+	            return _react2['default'].createElement(
+	                'div',
+	                null,
+	                _react2['default'].createElement(
+	                    'p',
+	                    { className: 'heading' },
+	                    'Watson thinks these are related queries...'
+	                ),
+	                _react2['default'].createElement(SimilarQuestions, { questions: this.props.questions }),
+	                _react2['default'].createElement(
+	                    'p',
+	                    { className: 'user-question' },
+	                    'Does this question rephrase any of the above?'
+	                ),
+	                _react2['default'].createElement(
+	                    'div',
+	                    { className: 'similar-questions' },
+	                    _react2['default'].createElement(_button2['default'], { onClick: this.props.similar, label: 'YES, THEY ARE SIMILAR', color: 'similar' }),
+	                    _react2['default'].createElement(_button2['default'], { onClick: this.props.notSimilar, label: 'NO, NOT RELATED', color: 'not-similar' })
+	                )
+	            );
+	        }
+	    }]);
+
+	    return Questions;
+	})(_react2['default'].Component);
+
+	var Answers = (function (_React$Component3) {
+	    _inherits(Answers, _React$Component3);
+
+	    function Answers(props) {
+	        _classCallCheck(this, Answers);
+
+	        _get(Object.getPrototypeOf(Answers.prototype), 'constructor', this).call(this, props);
+
+	        this.state = {
+	            score: undefined
+	        };
+	    }
+
+	    _createClass(Answers, [{
+	        key: 'submit',
+	        value: function submit() {
+	            this.props.submit(this.state.score);
+	            this.setState({
+	                score: undefined
+	            });
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this = this;
+
+	            var labels = [['Wrong', 0], ['Poor', 20], ['Decent', 80], ['Perfect', 100]];
+
+	            var judgementButtons = labels.map(function (label) {
+	                return _react2['default'].createElement(_button2['default'], { label: label[0], active: label[1] == _this.state.score, onClick: function () {
+	                        return _this.setState({ score: label[1] });
+	                    } });
+	            });
+
+	            var answer = this.props.answer;
+
+	            return _react2['default'].createElement(
+	                'div',
+	                null,
+	                _react2['default'].createElement(
+	                    'p',
+	                    { className: 'heading' },
+	                    'Watson responded...'
+	                ),
+	                _react2['default'].createElement('div', { className: 'answer', dangerouslySetInnerHTML: { __html: answer } }),
+	                _react2['default'].createElement(
+	                    'div',
+	                    { className: 'button-group' },
+	                    judgementButtons,
+	                    _react2['default'].createElement(_button2['default'], { onClick: this.submit.bind(this), label: 'Submit', color: 'Submit', disabled: this.state.score == undefined })
+	                )
+	            );
+	        }
+	    }]);
+
+	    return Answers;
+	})(_react2['default'].Component);
+
+	var ResponseCard = (function (_React$Component4) {
+	    _inherits(ResponseCard, _React$Component4);
+
+	    function ResponseCard() {
+	        _classCallCheck(this, ResponseCard);
+
+	        _get(Object.getPrototypeOf(ResponseCard.prototype), 'constructor', this).apply(this, arguments);
+	    }
+
+	    _createClass(ResponseCard, [{
+	        key: 'render',
+	        value: function render() {
+	            return _react2['default'].createElement(
+	                'div',
+	                { className: 'response-card' },
+	                _react2['default'].createElement(
+	                    'div',
+	                    { className: 'card' },
+	                    this.props.other_questions.length ? _react2['default'].createElement(Questions, { questions: this.props.other_questions, similar: this.props.similar, notSimilar: this.props.notSimilar }) : _react2['default'].createElement(Answers, { answer: this.props.answer, perf: this.props.changePerformance, submit: this.props.submitToDB })
+	                )
+	            );
+	        }
+	    }]);
+
+	    return ResponseCard;
+	})(_react2['default'].Component);
+
+	exports['default'] = ResponseCard;
+	;
+	module.exports = exports['default'];
 
 /***/ },
 /* 254 */
@@ -52497,7 +52644,7 @@
 
 
 	// module
-	exports.push([module.id, "@charset \"UTF-8\";\n@font-face {\n  font-family: \"untitled-font-1\";\n  src: url(" + __webpack_require__(257) + ");\n  src: url(" + __webpack_require__(257) + "?#iefix) format(\"embedded-opentype\"), url(" + __webpack_require__(258) + ") format(\"woff\"), url(" + __webpack_require__(259) + ") format(\"truetype\"), url(" + __webpack_require__(260) + "#untitled-font-1) format(\"svg\");\n  font-weight: normal;\n  font-style: normal; }\n\n[data-icon]:before {\n  font-family: \"untitled-font-1\" !important;\n  content: attr(data-icon);\n  font-style: normal !important;\n  font-weight: normal !important;\n  font-variant: normal !important;\n  text-transform: none !important;\n  speak: none;\n  line-height: 1;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n[class^=\"icon-\"]:before,\n[class*=\" icon-\"]:before {\n  font-family: \"untitled-font-1\" !important;\n  font-style: normal !important;\n  font-weight: normal !important;\n  font-variant: normal !important;\n  text-transform: none !important;\n  speak: none;\n  line-height: 1;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n.icon-down-open-big:before {\n  content: \"a\"; }\n\n.icon-doc-text:before {\n  content: \"b\"; }\n\n.icon-database:before {\n  content: \"c\"; }\n\n.icon-pencil:before {\n  content: \"d\"; }\n\n.icon-calendar:before {\n  content: \"e\"; }\n\n.icon-bar-chart:before {\n  content: \"f\"; }\n\n/*! normalize.css v3.0.2 | MIT License | git.io/normalize */\n/**\n * 1. Set default font family to sans-serif.\n * 2. Prevent iOS text size adjust after orientation change, without disabling\n *    user zoom.\n */\nhtml {\n  font-family: sans-serif;\n  /* 1 */\n  -ms-text-size-adjust: 100%;\n  /* 2 */\n  -webkit-text-size-adjust: 100%;\n  /* 2 */ }\n\n/**\n * Remove default margin.\n */\nbody {\n  margin: 0;\n  background-color: #6d7777;\n  font-family: \"Helvetica-Neue\", Helvetica, \"Open Sans\", Arial, \"Lucida Grande\", sans-serif;\n  margin: 0;\n  height: 100vh;\n  width: 100vw; }\n\n/* HTML5 display definitions\n   ========================================================================== */\n/**\n * Correct `block` display not defined for any HTML5 element in IE 8/9.\n * Correct `block` display not defined for `details` or `summary` in IE 10/11\n * and Firefox.\n * Correct `block` display not defined for `main` in IE 11.\n */\narticle,\naside,\ndetails,\nfigcaption,\nfigure,\nfooter,\nheader,\nhgroup,\nmain,\nmenu,\nnav,\nsection,\nsummary {\n  display: block; }\n\n/**\n * 1. Correct `inline-block` display not defined in IE 8/9.\n * 2. Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.\n */\naudio,\ncanvas,\nprogress,\nvideo {\n  display: inline-block;\n  /* 1 */\n  vertical-align: baseline;\n  /* 2 */ }\n\n/**\n * Prevent modern browsers from displaying `audio` without controls.\n * Remove excess height in iOS 5 devices.\n */\naudio:not([controls]) {\n  display: none;\n  height: 0; }\n\n/**\n * Address `[hidden]` styling not present in IE 8/9/10.\n * Hide the `template` element in IE 8/9/11, Safari, and Firefox < 22.\n */\n[hidden],\ntemplate {\n  display: none; }\n\n/* Links\n   ========================================================================== */\n/**\n * Remove the gray background color from active links in IE 10.\n */\na {\n  background-color: transparent; }\n\n/**\n * Improve readability when focused and also mouse hovered in all browsers.\n */\na:active,\na:hover {\n  outline: 0; }\n\n/* Text-level semantics\n   ========================================================================== */\n/**\n * Address styling not present in IE 8/9/10/11, Safari, and Chrome.\n */\nabbr[title] {\n  border-bottom: 1px dotted; }\n\n/**\n * Address style set to `bolder` in Firefox 4+, Safari, and Chrome.\n */\nb,\nstrong {\n  font-weight: bold; }\n\n/**\n * Address styling not present in Safari and Chrome.\n */\ndfn {\n  font-style: italic; }\n\n/**\n * Address variable `h1` font-size and margin within `section` and `article`\n * contexts in Firefox 4+, Safari, and Chrome.\n */\nh1 {\n  font-size: 2em;\n  margin: 0.67em 0; }\n\n/**\n * Address styling not present in IE 8/9.\n */\nmark {\n  background: #ff0;\n  color: #000; }\n\n/**\n * Address inconsistent and variable font size in all browsers.\n */\nsmall {\n  font-size: 80%; }\n\n/**\n * Prevent `sub` and `sup` affecting `line-height` in all browsers.\n */\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline; }\n\nsup {\n  top: -0.5em; }\n\nsub {\n  bottom: -0.25em; }\n\n/* Embedded content\n   ========================================================================== */\n/**\n * Remove border when inside `a` element in IE 8/9/10.\n */\nimg {\n  border: 0; }\n\n/**\n * Correct overflow not hidden in IE 9/10/11.\n */\nsvg:not(:root) {\n  overflow: hidden; }\n\n/* Grouping content\n   ========================================================================== */\n/**\n * Address margin not present in IE 8/9 and Safari.\n */\nfigure {\n  margin: 1em 40px; }\n\n/**\n * Address differences between Firefox and other browsers.\n */\nhr {\n  -moz-box-sizing: content-box;\n  box-sizing: content-box;\n  height: 0; }\n\n/**\n * Contain overflow in all browsers.\n */\npre {\n  overflow: auto; }\n\n/**\n * Address odd `em`-unit font size rendering in all browsers.\n */\ncode,\nkbd,\npre,\nsamp {\n  font-family: monospace, monospace;\n  font-size: 1em; }\n\n/* Forms\n   ========================================================================== */\n/**\n * Known limitation: by default, Chrome and Safari on OS X allow very limited\n * styling of `select`, unless a `border` property is set.\n */\n/**\n * 1. Correct color not being inherited.\n *    Known issue: affects color of disabled elements.\n * 2. Correct font properties not being inherited.\n * 3. Address margins set differently in Firefox 4+, Safari, and Chrome.\n */\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  color: inherit;\n  /* 1 */\n  font: inherit;\n  /* 2 */\n  margin: 0;\n  /* 3 */ }\n\n/**\n * Address `overflow` set to `hidden` in IE 8/9/10/11.\n */\nbutton {\n  overflow: visible; }\n\n/**\n * Address inconsistent `text-transform` inheritance for `button` and `select`.\n * All other form control elements do not inherit `text-transform` values.\n * Correct `button` style inheritance in Firefox, IE 8/9/10/11, and Opera.\n * Correct `select` style inheritance in Firefox.\n */\nbutton,\nselect {\n  text-transform: none; }\n\n/**\n * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`\n *    and `video` controls.\n * 2. Correct inability to style clickable `input` types in iOS.\n * 3. Improve usability and consistency of cursor style between image-type\n *    `input` and others.\n */\nbutton,\nhtml input[type=\"button\"],\ninput[type=\"reset\"],\ninput[type=\"submit\"] {\n  -webkit-appearance: button;\n  /* 2 */\n  cursor: pointer;\n  /* 3 */ }\n\n/**\n * Re-set default cursor for disabled elements.\n */\nbutton[disabled],\nhtml input[disabled] {\n  cursor: default; }\n\n/**\n * Remove inner padding and border in Firefox 4+.\n */\nbutton::-moz-focus-inner,\ninput::-moz-focus-inner {\n  border: 0;\n  padding: 0; }\n\n/**\n * Address Firefox 4+ setting `line-height` on `input` using `!important` in\n * the UA stylesheet.\n */\ninput {\n  line-height: normal; }\n\n/**\n * It's recommended that you don't attempt to style these elements.\n * Firefox's implementation doesn't respect box-sizing, padding, or width.\n *\n * 1. Address box sizing set to `content-box` in IE 8/9/10.\n * 2. Remove excess padding in IE 8/9/10.\n */\ninput[type=\"checkbox\"],\ninput[type=\"radio\"] {\n  box-sizing: border-box;\n  /* 1 */\n  padding: 0;\n  /* 2 */ }\n\n/**\n * Fix the cursor style for Chrome's increment/decrement buttons. For certain\n * `font-size` values of the `input`, it causes the cursor style of the\n * decrement button to change from `default` to `text`.\n */\ninput[type=\"number\"]::-webkit-inner-spin-button,\ninput[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto; }\n\n/**\n * 1. Address `appearance` set to `searchfield` in Safari and Chrome.\n * 2. Address `box-sizing` set to `border-box` in Safari and Chrome\n *    (include `-moz` to future-proof).\n */\ninput[type=\"search\"] {\n  -webkit-appearance: textfield;\n  /* 1 */\n  -moz-box-sizing: content-box;\n  -webkit-box-sizing: content-box;\n  /* 2 */\n  box-sizing: content-box; }\n\n/**\n * Remove inner padding and search cancel button in Safari and Chrome on OS X.\n * Safari (but not Chrome) clips the cancel button when the search input has\n * padding (and `textfield` appearance).\n */\ninput[type=\"search\"]::-webkit-search-cancel-button,\ninput[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none; }\n\n/**\n * Define consistent border, margin, and padding.\n */\nfieldset {\n  border: 1px solid #c0c0c0;\n  margin: 0 2px;\n  padding: 0.35em 0.625em 0.75em; }\n\n/**\n * 1. Correct `color` not being inherited in IE 8/9/10/11.\n * 2. Remove padding so people aren't caught out if they zero out fieldsets.\n */\nlegend {\n  border: 0;\n  /* 1 */\n  padding: 0;\n  /* 2 */ }\n\n/**\n * Remove default vertical scrollbar in IE 8/9/10/11.\n */\ntextarea {\n  overflow: auto; }\n\n/**\n * Don't inherit the `font-weight` (applied by a rule above).\n * NOTE: the default cannot safely be changed in Chrome and Safari on OS X.\n */\noptgroup {\n  font-weight: bold; }\n\n/* Tables\n   ========================================================================== */\n/**\n * Remove most spacing between table cells.\n */\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\ntd,\nth {\n  padding: 0; }\n\nbody {\n  -webkit-backface-visibility: hidden; }\n\n.uploads {\n  -webkit-animation: bounceInDown 1s ease 0.2s 1 both;\n  -moz-animation: bounceInDown 1s ease 0.2s 1 both;\n  animation: bounceInDown 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-around;\n  width: 100%; }\n\n@-webkit-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(30px); }\n  80% {\n    -webkit-transform: translateY(-10px); }\n  100% {\n    -webkit-transform: translateY(0px); } }\n\n@-moz-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -moz-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateY(30px); }\n  80% {\n    -moz-transform: translateY(-10px); }\n  100% {\n    -moz-transform: translateY(0px); } }\n\n@-o-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -o-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateY(30px); }\n  80% {\n    -o-transform: translateY(-10px); }\n  100% {\n    -o-transform: translateY(0px); } }\n\n@keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(-2000px);\n    transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(30px);\n    transform: translateY(30px); }\n  80% {\n    -webkit-transform: translateY(-10px);\n    transform: translateY(-10px); }\n  100% {\n    -webkit-transform: translateY(0px);\n    transform: translateY(0px); } }\n  .uploads .upload_form {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    width: 100%; }\n    .uploads .upload_form .system-name {\n      padding: 12; }\n    .uploads .upload_form .btn-container {\n      display: flex;\n      justify-content: space-between;\n      width: 100%; }\n      .uploads .upload_form .btn-container .check {\n        display: flex;\n        justify-content: space-around;\n        padding-top: 10px; }\n      .uploads .upload_form .btn-container .upload_file {\n        display: none; }\n      .uploads .upload_form .btn-container .filename {\n        display: flex;\n        flex-direction: column;\n        justify-content: center;\n        color: white;\n        font-size: 24px;\n        opacity: 0.7; }\n      .uploads .upload_form .btn-container .loading {\n        display: flex;\n        align-items: center;\n        height: 30px; }\n      .uploads .upload_form .btn-container .btn {\n        font-size: 14px;\n        background-color: #f9f9f9;\n        border: 1px solid #325c80;\n        color: #325c80;\n        padding: 12px;\n        cursor: pointer;\n        font-weight: bold;\n        transition: background 0.5s, color 0.5s; }\n      .uploads .upload_form .btn-container .btn:hover {\n        cursor: pointer;\n        background: #325c80;\n        color: #f9f9f9; }\n      .uploads .upload_form .btn-container .btn:focus {\n        outline: none; }\n\n.downloads {\n  -webkit-animation: bounceInLeft 1s ease 0.2s 1 both;\n  -moz-animation: bounceInLeft 1s ease 0.2s 1 both;\n  animation: bounceInLeft 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  margin: 0 auto;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: flex-start; }\n\n@-webkit-keyframes bounceInLeft {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateX(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateX(30px); }\n  80% {\n    -webkit-transform: translateX(-10px); }\n  100% {\n    -webkit-transform: translateX(0); } }\n\n@-moz-keyframes bounceInLeft {\n  0% {\n    opacity: 0;\n    -moz-transform: translateX(-2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateX(30px); }\n  80% {\n    -moz-transform: translateX(-10px); }\n  100% {\n    -moz-transform: translateX(0); } }\n\n@-o-keyframes bounceInLeft {\n  0% {\n    opacity: 0;\n    -o-transform: translateX(-2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateX(30px); }\n  80% {\n    -o-transform: translateX(-10px); }\n  100% {\n    -o-transform: translateX(0); } }\n\n@keyframes bounceInLeft {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateX(-2000px);\n    transform: translateX(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateX(30px);\n    transform: translateX(30px); }\n  80% {\n    -webkit-transform: translateX(-10px);\n    transform: translateX(-10px); }\n  100% {\n    -webkit-transform: translateX(0);\n    transform: translateX(0); } }\n  .downloads .time_period {\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    z-index: 2; }\n    .downloads .time_period .percent-annotated {\n      z-index: 1; }\n  .downloads .exportForm {\n    display: flex;\n    flex-direction: column; }\n    .downloads .exportForm .check-wrapper {\n      margin-bottom: 10px; }\n      .downloads .exportForm .check-wrapper .check {\n        margin-right: 10px; }\n    .downloads .exportForm .button {\n      font-size: 20px;\n      background-color: #f9f9f9;\n      border: 1px solid #0068B9;\n      color: #0068B9;\n      padding: 20px;\n      cursor: pointer;\n      font-weight: bold;\n      text-decoration: none;\n      transition: background 0.5s, color 0.5s; }\n    .downloads .exportForm .button:hover {\n      background: #0068B9;\n      color: #f9f9f9; }\n    .downloads .exportForm .button:focus {\n      outline: none; }\n    .downloads .exportForm .text-wrapper {\n      display: flex;\n      flex-direction: column;\n      justify-content: flex-end;\n      margin-bottom: 10px; }\n      .downloads .exportForm .text-wrapper input {\n        border: none; }\n\n.response-card {\n  -webkit-animation: bounceInRight 1s ease 0.2s 1 both;\n  -moz-animation: bounceInRight 1s ease 0.2s 1 both;\n  animation: bounceInRight 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  background-color: white;\n  width: 100%;\n  margin-top: 5px; }\n\n@-webkit-keyframes bounceInRight {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateX(2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateX(-30px); }\n  80% {\n    -webkit-transform: translateX(10px); }\n  100% {\n    -webkit-transform: translateX(0); } }\n\n@-moz-keyframes bounceInRight {\n  0% {\n    opacity: 0;\n    -moz-transform: translateX(2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateX(-30px); }\n  80% {\n    -moz-transform: translateX(10px); }\n  100% {\n    -moz-transform: translateX(0); } }\n\n@-o-keyframes bounceInRight {\n  0% {\n    opacity: 0;\n    -o-transform: translateX(2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateX(-30px); }\n  80% {\n    -o-transform: translateX(10px); }\n  100% {\n    -o-transform: translateX(0); } }\n\n@keyframes bounceInRight {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateX(2000px);\n    transform: translateX(2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateX(-30px);\n    transform: translateX(-30px); }\n  80% {\n    -webkit-transform: translateX(10px);\n    transform: translateX(10px); }\n  100% {\n    -webkit-transform: translateX(0);\n    transform: translateX(0); } }\n  .response-card .card {\n    padding: 40px; }\n    .response-card .card .heading {\n      font-size: 14px;\n      margin: 3px;\n      color: #787778; }\n    .response-card .card .answer {\n      display: flex;\n      flex-direction: column;\n      justify-content: center;\n      font-size: 25px; }\n      .response-card .card .answer .topicTitle {\n        font-size: 14px; }\n      .response-card .card .answer a {\n        font-size: 12px; }\n    .response-card .card .user-question {\n      color: #0080ff;\n      font-style: italic; }\n\n.annotation-assist {\n  -webkit-animation: bounceInUp 1s ease 0.2s 1 both;\n  -moz-animation: bounceInUp 1s ease 0.2s 1 both;\n  animation: bounceInUp 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  display: flex;\n  flex-direction: column; }\n\n@-webkit-keyframes bounceInUp {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(-30px); }\n  80% {\n    -webkit-transform: translateY(10px); }\n  100% {\n    -webkit-transform: translateY(0px); } }\n\n@-moz-keyframes bounceInUp {\n  0% {\n    opacity: 0;\n    -moz-transform: translateY(2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateY(-30px); }\n  80% {\n    -moz-transform: translateY(10px); }\n  100% {\n    -moz-transform: translateY(0px); } }\n\n@-o-keyframes bounceInUp {\n  0% {\n    opacity: 0;\n    -o-transform: translateY(2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateY(-30px); }\n  80% {\n    -o-transform: translateY(10px); }\n  100% {\n    -o-transform: translateY(0px); } }\n\n@keyframes bounceInUp {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(2000px);\n    transform: translateY(2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(-30px);\n    transform: translateY(-30px); }\n  80% {\n    -webkit-transform: translateY(10px);\n    transform: translateY(10px); }\n  100% {\n    -webkit-transform: translateY(0px);\n    transform: translateY(0px); } }\n  .annotation-assist .cards {\n    width: 75%;\n    height: 75%;\n    display: flex;\n    flex-direction: column; }\n  .annotation-assist .skip-query {\n    display: inline-block;\n    cursor: pointer;\n    color: #c0e6ff;\n    margin-top: 10px;\n    text-decoration: underline; }\n\n.query_card_background {\n  transition: background 1.7s, ease;\n  -webkit-transition: background 1.7s, ease;\n  -moz-transition: background 1.7s, ease;\n  -ms-transition: background 1.7s, ease;\n  -o-transition: background 1.7s, ease;\n  width: 100%; }\n  .query_card_background .card {\n    padding: 30px 40px 10px 40px;\n    display: flex;\n    flex-direction: column;\n    justify-content: center; }\n    .query_card_background .card .heading {\n      font-size: 14px;\n      margin: 3px;\n      color: #787778;\n      width: 50%;\n      display: inline-block; }\n    .query_card_background .card .loading {\n      margin-top: 30px;\n      margin: 0 auto; }\n    .query_card_background .card .question {\n      font-size: 30px;\n      margin: 15px 0; }\n    .query_card_background .card .purview {\n      display: flex;\n      flex-direction: row;\n      width: 100%; }\n\n.btn {\n  align-self: flex-start;\n  text-align: center;\n  border: 0;\n  padding: 10px 20px 10px 20px;\n  margin: 2px;\n  cursor: pointer;\n  font-size: 14px;\n  vertical-align: top;\n  width: 210px;\n  margin-right: 10px;\n  color: black;\n  font-weight: bold;\n  background: #c0e6ff;\n  text-transform: uppercase;\n  transition: background 1s, ease;\n  -webkit-transition: background 1s, ease;\n  -moz-transition: background 1s, ease;\n  -ms-transition: background 1s, ease;\n  -o-transition: background 1s, ease; }\n  .btn:hover {\n    background: rgba(192, 230, 255, 0.75);\n    transition: background 0.3s, ease;\n    -webkit-transition: background 0.3s, ease;\n    -moz-transition: background 0.3s, ease;\n    -ms-transition: background 0.3s, ease;\n    -o-transition: background 0.3s, ease; }\n  .btn.active, .btn .within-purview {\n    background: #000;\n    color: white; }\n  .btn.outside-of-purview, .btn.not-similar {\n    background: #ffa573; }\n    .btn.outside-of-purview:hover, .btn.not-similar:hover {\n      background: #ff8440; }\n  .btn.submit, .btn.disabled {\n    background: #4178be;\n    color: white !important; }\n    .btn.submit:hover, .btn.disabled:hover {\n      background: #346098; }\n  .btn.within-purview, .btn.similar {\n    background: #8cd211;\n    color: black; }\n    .btn.within-purview:hover, .btn.similar:hover {\n      background: #6da30d; }\n  .btn.disabled {\n    background: #b3c9e5; }\n\n*:focus {\n  outline: none !important; }\n\n* {\n  z-index: inherit; }\n\n.overlay {\n  z-index: -1;\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  top: -0;\n  left: -0;\n  opacity: 0.2;\n  background-color: black; }\n\n.calendar-component-wrapper {\n  z-index: 2;\n  display: flex;\n  align-self: flex-end;\n  position: relative; }\n  .calendar-component-wrapper .calendar-dropdown {\n    cursor: pointer;\n    background-color: white;\n    width: 280;\n    padding: 0 20;\n    height: 35;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 10px; }\n    .calendar-component-wrapper .calendar-dropdown .icon {\n      font-size: 22px;\n      color: #0068B9; }\n  .calendar-component-wrapper .calendar-component {\n    box-shadow: 1px 1px 5px 5px rgba(100, 100, 100, 0.1);\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n    position: absolute;\n    top: 40;\n    right: 0;\n    padding: 20;\n    background-color: #c0e6ff; }\n    .calendar-component-wrapper .calendar-component::after {\n      position: absolute;\n      top: -17;\n      right: 21;\n      content: \"\\25B2\";\n      color: #c0e6ff;\n      font-size: 20;\n      transform: scaleX(1.2);\n      text-shadow: 0px -6px 5px rgba(100, 100, 100, 0.1); }\n    .calendar-component-wrapper .calendar-component .clickable {\n      cursor: pointer;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n      background-color: white; }\n      .calendar-component-wrapper .calendar-component .clickable:hover {\n        background-color: black;\n        color: white; }\n    .calendar-component-wrapper .calendar-component .calendar-component-left {\n      margin-right: 15px;\n      width: 470px;\n      display: flex;\n      flex-direction: column; }\n      .calendar-component-wrapper .calendar-component .calendar-component-left .calendar-component-left-top {\n        height: 222;\n        display: flex;\n        justify-content: space-between;\n        margin-bottom: 10px; }\n      .calendar-component-wrapper .calendar-component .calendar-component-left .calendar-component-left-bottom .submit-button {\n        margin: auto;\n        height: 30px;\n        width: 100px; }\n    .calendar-component-wrapper .calendar-component .calendar-component-right {\n      display: flex;\n      flex-direction: column;\n      justify-content: space-between;\n      height: 222; }\n      .calendar-component-wrapper .calendar-component .calendar-component-right .button-container {\n        display: flex;\n        flex-direction: column;\n        align-items: center;\n        flex: 1;\n        margin-bottom: 10px;\n        justify-content: space-between; }\n        .calendar-component-wrapper .calendar-component .calendar-component-right .button-container .time-range-button {\n          width: 200px;\n          height: 35px; }\n      .calendar-component-wrapper .calendar-component .calendar-component-right .date-indicator-container {\n        display: flex;\n        justify-content: space-between;\n        text-align: center; }\n        .calendar-component-wrapper .calendar-component .calendar-component-right .date-indicator-container .date-indicator {\n          display: flex;\n          flex-direction: column; }\n          .calendar-component-wrapper .calendar-component .calendar-component-right .date-indicator-container .date-indicator .date {\n            cursor: pointer;\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            border: 0;\n            width: 90px;\n            height: 30px;\n            text-align: center;\n            background-color: white;\n            padding: 3px; }\n          .calendar-component-wrapper .calendar-component .calendar-component-right .date-indicator-container .date-indicator .active {\n            background-color: black;\n            color: white; }\n          .calendar-component-wrapper .calendar-component .calendar-component-right .date-indicator-container .date-indicator .invalid {\n            background-color: red; }\n    .calendar-component-wrapper .calendar-component .date-picker {\n      display: flex;\n      flex-direction: column;\n      flex-flow: column;\n      flex: 1 0 auto;\n      max-width: 230px; }\n    .calendar-component-wrapper .calendar-component .date-picker,\n    .calendar-component-wrapper .calendar-component .date-picker * {\n      box-sizing: border-box; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-footer {\n      flex-direction: row;\n      flex-flow: row;\n      flex-flow: row;\n      display: -webkit-box;\n      display: -moz-box;\n      display: -ms-flexbox;\n      display: -webkit-flex;\n      display: flex; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-body {\n      display: -webkit-box;\n      display: -moz-box;\n      display: -ms-flexbox;\n      display: -webkit-flex;\n      display: flex;\n      flex-direction: column;\n      flex-flow: column;\n      flex-flow: column;\n      flex: 1; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table {\n      display: -webkit-box;\n      display: -moz-box;\n      display: -ms-flexbox;\n      display: -webkit-flex;\n      display: flex;\n      flex-direction: column;\n      flex-flow: column;\n      flex-flow: column;\n      flex: 1; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-row {\n      display: -webkit-box;\n      display: -moz-box;\n      display: -ms-flexbox;\n      display: -webkit-flex;\n      display: flex;\n      flex-direction: row;\n      flex-flow: row;\n      flex-flow: row;\n      flex: 1; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-cell {\n      display: -webkit-box;\n      display: -moz-box;\n      display: -ms-flexbox;\n      display: -webkit-flex;\n      display: flex;\n      align-items: center;\n      flex-pack: center;\n      justify-content: center;\n      flex: 1; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-table {\n      display: -webkit-box;\n      display: -moz-box;\n      display: -ms-flexbox;\n      display: -webkit-flex;\n      display: flex;\n      flex-direction: row;\n      flex-flow: row;\n      flex-flow: row;\n      flex: 1;\n      width: 100%; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-table .dp-cell {\n      flex: 7; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-table .dp-nav-cell {\n      flex: 1; }\n    .calendar-component-wrapper .calendar-component .date-picker {\n      overflow: hidden;\n      background: #fff;\n      font-size: 14px; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell {\n      cursor: pointer;\n      padding: 5px;\n      background: inherit; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell.dp-prev,\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell.dp-next {\n      color: #5c5c5c;\n      background: inherit; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell.dp-in-range {\n      background: #e2f0ff; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell:hover {\n      color: white;\n      font-weight: inherit;\n      background: black; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell.dp-disabled {\n      cursor: default;\n      color: #adadad;\n      background: inherit; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell.dp-value {\n      color: white;\n      font-weight: 500;\n      background: black; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell.dp-month {\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      overflow: hidden; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-table .dp-cell.dp-week-day-name {\n      font-weight: bold;\n      cursor: default;\n      background: inherit; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-footer {\n      display: none;\n      padding: 3px;\n      flex-pack: center;\n      justify-content: center;\n      border-top-width: 0px; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-footer .dp-footer-selected,\n    .calendar-component-wrapper .calendar-component .date-picker .dp-footer .dp-footer-today {\n      padding: 5px 15px;\n      border-width: 1px;\n      cursor: pointer; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-body {\n      overflow: hidden; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-view,\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-cell,\n    .calendar-component-wrapper .calendar-component .date-picker .dp-week-day-name {\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      overflow: hidden;\n      touch-callout: none;\n      user-select: none; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-view,\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-cell {\n      cursor: pointer; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-cell {\n      background: inherit; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-cell:hover {\n      background: #eee; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-view {\n      background: inherit; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-view:hover {\n      background: #eee; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-nav-table .dp-cell {\n      border-top-width: 0px;\n      border-bottom-width: 0px;\n      padding: 8px;\n      font-weight: bold; }\n    .calendar-component-wrapper .calendar-component .date-picker .dp-decade-view,\n    .calendar-component-wrapper .calendar-component .date-picker .dp-year-view,\n    .calendar-component-wrapper .calendar-component .date-picker .dp-month-view {\n      touch-callout: none;\n      user-select: none; }\n\n*:focus {\n  outline: none !important; }\n\n* {\n  z-index: inherit; }\n\n.overlay {\n  z-index: -1;\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  top: -0;\n  left: -0;\n  opacity: 0.2;\n  background-color: black; }\n\n.system-selector-wrapper {\n  z-index: 2;\n  display: flex;\n  align-self: flex-end;\n  position: relative; }\n  .system-selector-wrapper .system-selector-dropdown {\n    cursor: pointer;\n    background-color: white;\n    width: 280;\n    padding: 0 20;\n    height: 35;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 10px; }\n    .system-selector-wrapper .system-selector-dropdown .icon {\n      font-size: 22px;\n      color: #0068B9; }\n  .system-selector-wrapper .system-selector {\n    box-shadow: 1px 1px 5px 5px rgba(100, 100, 100, 0.1);\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n    position: absolute;\n    top: 40;\n    right: 0;\n    padding: 20;\n    background-color: #c0e6ff; }\n    .system-selector-wrapper .system-selector::after {\n      position: absolute;\n      top: -17;\n      right: 21;\n      content: \"\\25B2\";\n      color: #c0e6ff;\n      font-size: 20;\n      transform: scaleX(1.2);\n      text-shadow: 0px -6px 5px rgba(100, 100, 100, 0.1); }\n    .system-selector-wrapper .system-selector .clickable {\n      cursor: pointer;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n      background-color: white; }\n      .system-selector-wrapper .system-selector .clickable:hover {\n        background-color: black;\n        color: white; }\n    .system-selector-wrapper .system-selector .calendar-component-right {\n      display: flex;\n      flex-direction: column;\n      justify-content: space-between; }\n      .system-selector-wrapper .system-selector .calendar-component-right .button-container {\n        display: flex;\n        flex-direction: column;\n        align-items: center;\n        flex: 1;\n        justify-content: space-between; }\n        .system-selector-wrapper .system-selector .calendar-component-right .button-container .select-option {\n          margin: 5px 0;\n          width: 200px;\n          height: 35px; }\n\n.header {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: justify;\n  -ms-flex-pack: justify;\n  -webkit-justify-content: space-between;\n  -moz-justify-content: space-between;\n  justify-content: space-between;\n  margin-bottom: 50px; }\n  .header .logo {\n    display: -webkit-box;\n    display: -webkit-flex;\n    display: -moz-flex;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-direction: normal;\n    -webkit-box-orient: horizontal;\n    -webkit-flex-direction: row;\n    -moz-flex-direction: row;\n    -ms-flex-direction: row;\n    flex-direction: row;\n    -webkit-box-align: center;\n    -ms-flex-align: center;\n    -webkit-align-items: center;\n    -moz-align-items: center;\n    align-items: center;\n    width: 500px; }\n    .header .logo img {\n      width: 80px;\n      height: 80px; }\n    .header .logo span {\n      color: white;\n      font-size: 2rem; }\n  .header .nav ul {\n    display: -webkit-box;\n    display: -webkit-flex;\n    display: -moz-flex;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n    -ms-flex-pack: justify;\n    -webkit-justify-content: space-between;\n    -moz-justify-content: space-between;\n    justify-content: space-between;\n    margin: 0; }\n    .header .nav ul li {\n      list-style-type: none;\n      font-size: 30px;\n      color: white;\n      cursor: pointer; }\n      .header .nav ul li a {\n        display: flex;\n        color: white;\n        text-decoration: none; }\n        .header .nav ul li a span {\n          transition: background 0.5s ease;\n          padding: 25px 20px; }\n          .header .nav ul li a span.active {\n            background: white;\n            color: #000; }\n      .header .nav ul li:last-child {\n        padding-right: 0; }\n\n.accuracy-pop-up {\n  flex: 1;\n  display: flex;\n  justify-content: flex-end;\n  position: relative; }\n  .accuracy-pop-up .display-text {\n    cursor: pointer;\n    display: inline-block;\n    color: #0068B9;\n    text-decoration: underline;\n    align-self: flex-end; }\n  .accuracy-pop-up .pop-up-wrapper {\n    position: relative; }\n  .accuracy-pop-up .pop-up {\n    box-shadow: 1px 1px 5px 5px rgba(100, 100, 100, 0.1);\n    position: absolute;\n    top: -20;\n    left: -750;\n    padding: 10;\n    width: 630;\n    display: flex;\n    flex-direction: column;\n    background-color: white; }\n    .accuracy-pop-up .pop-up::after {\n      position: absolute;\n      top: 43;\n      left: 647;\n      content: \"\\25B6\";\n      transform: scaleY(1.5);\n      color: white;\n      text-shadow: 6px 0px 5px rgba(100, 100, 100, 0.1); }\n    .accuracy-pop-up .pop-up .close {\n      position: absolute;\n      cursor: pointer;\n      top: 10;\n      color: #0068B9;\n      left: 625;\n      font-size: 20px; }\n    .accuracy-pop-up .pop-up .top-row {\n      display: flex;\n      flex-direction: column;\n      align-items: center;\n      margin-bottom: 10px; }\n      .accuracy-pop-up .pop-up .top-row .watson-logo {\n        max-height: 50px; }\n      .accuracy-pop-up .pop-up .top-row .pop-up-header {\n        font-size: 20px;\n        font-weight: 600;\n        margin: 10px; }\n    .accuracy-pop-up .pop-up .bottom-row {\n      display: flex;\n      flex: 1; }\n      .accuracy-pop-up .pop-up .bottom-row .info-box {\n        padding: 0 16px;\n        flex: 1; }\n        .accuracy-pop-up .pop-up .bottom-row .info-box .category-header {\n          font-weight: bold; }\n      .accuracy-pop-up .pop-up .bottom-row .component-left {\n        background-color: #FFA572;\n        margin-right: 2px; }\n      .accuracy-pop-up .pop-up .bottom-row .component-right {\n        background-color: #8CD211; }\n      .accuracy-pop-up .pop-up .bottom-row .questions {\n        padding: 0;\n        list-style-type: none;\n        font-style: italic;\n        font-weight: bold; }\n\n.app {\n  width: 80%;\n  margin: auto; }\n", ""]);
+	exports.push([module.id, "@charset \"UTF-8\";\n@font-face {\n  font-family: \"untitled-font-1\";\n  src: url(" + __webpack_require__(257) + ");\n  src: url(" + __webpack_require__(257) + "?#iefix) format(\"embedded-opentype\"), url(" + __webpack_require__(258) + ") format(\"woff\"), url(" + __webpack_require__(259) + ") format(\"truetype\"), url(" + __webpack_require__(260) + "#untitled-font-1) format(\"svg\");\n  font-weight: normal;\n  font-style: normal; }\n\n[data-icon]:before {\n  font-family: \"untitled-font-1\" !important;\n  content: attr(data-icon);\n  font-style: normal !important;\n  font-weight: normal !important;\n  font-variant: normal !important;\n  text-transform: none !important;\n  speak: none;\n  line-height: 1;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n[class^=\"icon-\"]:before,\n[class*=\" icon-\"]:before {\n  font-family: \"untitled-font-1\" !important;\n  font-style: normal !important;\n  font-weight: normal !important;\n  font-variant: normal !important;\n  text-transform: none !important;\n  speak: none;\n  line-height: 1;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n.icon-down-open-big:before {\n  content: \"a\"; }\n\n.icon-doc-text:before {\n  content: \"b\"; }\n\n.icon-database:before {\n  content: \"c\"; }\n\n.icon-pencil:before {\n  content: \"d\"; }\n\n.icon-calendar:before {\n  content: \"e\"; }\n\n.icon-bar-chart:before {\n  content: \"f\"; }\n\n/*! normalize.css v3.0.2 | MIT License | git.io/normalize */\n/**\n * 1. Set default font family to sans-serif.\n * 2. Prevent iOS text size adjust after orientation change, without disabling\n *    user zoom.\n */\nhtml {\n  font-family: sans-serif;\n  /* 1 */\n  -ms-text-size-adjust: 100%;\n  /* 2 */\n  -webkit-text-size-adjust: 100%;\n  /* 2 */ }\n\n/**\n * Remove default margin.\n */\nbody {\n  margin: 0;\n  background-color: #6d7777;\n  font-family: \"Helvetica-Neue\", Helvetica, \"Open Sans\", Arial, \"Lucida Grande\", sans-serif;\n  margin: 0;\n  height: 100vh;\n  width: 100vw; }\n\n/* HTML5 display definitions\n   ========================================================================== */\n/**\n * Correct `block` display not defined for any HTML5 element in IE 8/9.\n * Correct `block` display not defined for `details` or `summary` in IE 10/11\n * and Firefox.\n * Correct `block` display not defined for `main` in IE 11.\n */\narticle,\naside,\ndetails,\nfigcaption,\nfigure,\nfooter,\nheader,\nhgroup,\nmain,\nmenu,\nnav,\nsection,\nsummary {\n  display: block; }\n\n/**\n * 1. Correct `inline-block` display not defined in IE 8/9.\n * 2. Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.\n */\naudio,\ncanvas,\nprogress,\nvideo {\n  display: inline-block;\n  /* 1 */\n  vertical-align: baseline;\n  /* 2 */ }\n\n/**\n * Prevent modern browsers from displaying `audio` without controls.\n * Remove excess height in iOS 5 devices.\n */\naudio:not([controls]) {\n  display: none;\n  height: 0; }\n\n/**\n * Address `[hidden]` styling not present in IE 8/9/10.\n * Hide the `template` element in IE 8/9/11, Safari, and Firefox < 22.\n */\n[hidden],\ntemplate {\n  display: none; }\n\n/* Links\n   ========================================================================== */\n/**\n * Remove the gray background color from active links in IE 10.\n */\na {\n  background-color: transparent; }\n\n/**\n * Improve readability when focused and also mouse hovered in all browsers.\n */\na:active,\na:hover {\n  outline: 0; }\n\n/* Text-level semantics\n   ========================================================================== */\n/**\n * Address styling not present in IE 8/9/10/11, Safari, and Chrome.\n */\nabbr[title] {\n  border-bottom: 1px dotted; }\n\n/**\n * Address style set to `bolder` in Firefox 4+, Safari, and Chrome.\n */\nb,\nstrong {\n  font-weight: bold; }\n\n/**\n * Address styling not present in Safari and Chrome.\n */\ndfn {\n  font-style: italic; }\n\n/**\n * Address variable `h1` font-size and margin within `section` and `article`\n * contexts in Firefox 4+, Safari, and Chrome.\n */\nh1 {\n  font-size: 2em;\n  margin: 0.67em 0; }\n\n/**\n * Address styling not present in IE 8/9.\n */\nmark {\n  background: #ff0;\n  color: #000; }\n\n/**\n * Address inconsistent and variable font size in all browsers.\n */\nsmall {\n  font-size: 80%; }\n\n/**\n * Prevent `sub` and `sup` affecting `line-height` in all browsers.\n */\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline; }\n\nsup {\n  top: -0.5em; }\n\nsub {\n  bottom: -0.25em; }\n\n/* Embedded content\n   ========================================================================== */\n/**\n * Remove border when inside `a` element in IE 8/9/10.\n */\nimg {\n  border: 0; }\n\n/**\n * Correct overflow not hidden in IE 9/10/11.\n */\nsvg:not(:root) {\n  overflow: hidden; }\n\n/* Grouping content\n   ========================================================================== */\n/**\n * Address margin not present in IE 8/9 and Safari.\n */\nfigure {\n  margin: 1em 40px; }\n\n/**\n * Address differences between Firefox and other browsers.\n */\nhr {\n  -moz-box-sizing: content-box;\n  box-sizing: content-box;\n  height: 0; }\n\n/**\n * Contain overflow in all browsers.\n */\npre {\n  overflow: auto; }\n\n/**\n * Address odd `em`-unit font size rendering in all browsers.\n */\ncode,\nkbd,\npre,\nsamp {\n  font-family: monospace, monospace;\n  font-size: 1em; }\n\n/* Forms\n   ========================================================================== */\n/**\n * Known limitation: by default, Chrome and Safari on OS X allow very limited\n * styling of `select`, unless a `border` property is set.\n */\n/**\n * 1. Correct color not being inherited.\n *    Known issue: affects color of disabled elements.\n * 2. Correct font properties not being inherited.\n * 3. Address margins set differently in Firefox 4+, Safari, and Chrome.\n */\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  color: inherit;\n  /* 1 */\n  font: inherit;\n  /* 2 */\n  margin: 0;\n  /* 3 */ }\n\n/**\n * Address `overflow` set to `hidden` in IE 8/9/10/11.\n */\nbutton {\n  overflow: visible; }\n\n/**\n * Address inconsistent `text-transform` inheritance for `button` and `select`.\n * All other form control elements do not inherit `text-transform` values.\n * Correct `button` style inheritance in Firefox, IE 8/9/10/11, and Opera.\n * Correct `select` style inheritance in Firefox.\n */\nbutton,\nselect {\n  text-transform: none; }\n\n/**\n * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`\n *    and `video` controls.\n * 2. Correct inability to style clickable `input` types in iOS.\n * 3. Improve usability and consistency of cursor style between image-type\n *    `input` and others.\n */\nbutton,\nhtml input[type=\"button\"],\ninput[type=\"reset\"],\ninput[type=\"submit\"] {\n  -webkit-appearance: button;\n  /* 2 */\n  cursor: pointer;\n  /* 3 */ }\n\n/**\n * Re-set default cursor for disabled elements.\n */\nbutton[disabled],\nhtml input[disabled] {\n  cursor: default; }\n\n/**\n * Remove inner padding and border in Firefox 4+.\n */\nbutton::-moz-focus-inner,\ninput::-moz-focus-inner {\n  border: 0;\n  padding: 0; }\n\n/**\n * Address Firefox 4+ setting `line-height` on `input` using `!important` in\n * the UA stylesheet.\n */\ninput {\n  line-height: normal; }\n\n/**\n * It's recommended that you don't attempt to style these elements.\n * Firefox's implementation doesn't respect box-sizing, padding, or width.\n *\n * 1. Address box sizing set to `content-box` in IE 8/9/10.\n * 2. Remove excess padding in IE 8/9/10.\n */\ninput[type=\"checkbox\"],\ninput[type=\"radio\"] {\n  box-sizing: border-box;\n  /* 1 */\n  padding: 0;\n  /* 2 */ }\n\n/**\n * Fix the cursor style for Chrome's increment/decrement buttons. For certain\n * `font-size` values of the `input`, it causes the cursor style of the\n * decrement button to change from `default` to `text`.\n */\ninput[type=\"number\"]::-webkit-inner-spin-button,\ninput[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto; }\n\n/**\n * 1. Address `appearance` set to `searchfield` in Safari and Chrome.\n * 2. Address `box-sizing` set to `border-box` in Safari and Chrome\n *    (include `-moz` to future-proof).\n */\ninput[type=\"search\"] {\n  -webkit-appearance: textfield;\n  /* 1 */\n  -moz-box-sizing: content-box;\n  -webkit-box-sizing: content-box;\n  /* 2 */\n  box-sizing: content-box; }\n\n/**\n * Remove inner padding and search cancel button in Safari and Chrome on OS X.\n * Safari (but not Chrome) clips the cancel button when the search input has\n * padding (and `textfield` appearance).\n */\ninput[type=\"search\"]::-webkit-search-cancel-button,\ninput[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none; }\n\n/**\n * Define consistent border, margin, and padding.\n */\nfieldset {\n  border: 1px solid #c0c0c0;\n  margin: 0 2px;\n  padding: 0.35em 0.625em 0.75em; }\n\n/**\n * 1. Correct `color` not being inherited in IE 8/9/10/11.\n * 2. Remove padding so people aren't caught out if they zero out fieldsets.\n */\nlegend {\n  border: 0;\n  /* 1 */\n  padding: 0;\n  /* 2 */ }\n\n/**\n * Remove default vertical scrollbar in IE 8/9/10/11.\n */\ntextarea {\n  overflow: auto; }\n\n/**\n * Don't inherit the `font-weight` (applied by a rule above).\n * NOTE: the default cannot safely be changed in Chrome and Safari on OS X.\n */\noptgroup {\n  font-weight: bold; }\n\n/* Tables\n   ========================================================================== */\n/**\n * Remove most spacing between table cells.\n */\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\ntd,\nth {\n  padding: 0; }\n\nbody {\n  -webkit-backface-visibility: hidden; }\n\n.uploads {\n  -webkit-animation: bounceInDown 1s ease 0.2s 1 both;\n  -moz-animation: bounceInDown 1s ease 0.2s 1 both;\n  animation: bounceInDown 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-around;\n  width: 100%; }\n\n@-webkit-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(30px); }\n  80% {\n    -webkit-transform: translateY(-10px); }\n  100% {\n    -webkit-transform: translateY(0px); } }\n\n@-moz-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -moz-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateY(30px); }\n  80% {\n    -moz-transform: translateY(-10px); }\n  100% {\n    -moz-transform: translateY(0px); } }\n\n@-o-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -o-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateY(30px); }\n  80% {\n    -o-transform: translateY(-10px); }\n  100% {\n    -o-transform: translateY(0px); } }\n\n@keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(-2000px);\n    transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(30px);\n    transform: translateY(30px); }\n  80% {\n    -webkit-transform: translateY(-10px);\n    transform: translateY(-10px); }\n  100% {\n    -webkit-transform: translateY(0px);\n    transform: translateY(0px); } }\n  .uploads .upload_form {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    width: 100%; }\n    .uploads .upload_form .system-name {\n      padding: 12; }\n    .uploads .upload_form .btn-container {\n      display: flex;\n      justify-content: space-between;\n      width: 100%; }\n      .uploads .upload_form .btn-container .check {\n        display: flex;\n        justify-content: space-around;\n        padding-top: 10px; }\n      .uploads .upload_form .btn-container .upload_file {\n        display: none; }\n      .uploads .upload_form .btn-container .filename {\n        display: flex;\n        flex-direction: column;\n        justify-content: center;\n        color: white;\n        font-size: 24px;\n        opacity: 0.7; }\n      .uploads .upload_form .btn-container .loading {\n        display: flex;\n        align-items: center;\n        height: 30px; }\n      .uploads .upload_form .btn-container .btn {\n        font-size: 14px;\n        background-color: #f9f9f9;\n        border: 1px solid #325c80;\n        color: #325c80;\n        padding: 12px;\n        cursor: pointer;\n        font-weight: bold;\n        transition: background 0.5s, color 0.5s; }\n      .uploads .upload_form .btn-container .btn:hover {\n        cursor: pointer;\n        background: #325c80;\n        color: #f9f9f9; }\n      .uploads .upload_form .btn-container .btn:focus {\n        outline: none; }\n\n.downloads {\n  -webkit-animation: bounceInLeft 1s ease 0.2s 1 both;\n  -moz-animation: bounceInLeft 1s ease 0.2s 1 both;\n  animation: bounceInLeft 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  margin: 0 auto;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: flex-start; }\n\n@-webkit-keyframes bounceInLeft {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateX(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateX(30px); }\n  80% {\n    -webkit-transform: translateX(-10px); }\n  100% {\n    -webkit-transform: translateX(0); } }\n\n@-moz-keyframes bounceInLeft {\n  0% {\n    opacity: 0;\n    -moz-transform: translateX(-2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateX(30px); }\n  80% {\n    -moz-transform: translateX(-10px); }\n  100% {\n    -moz-transform: translateX(0); } }\n\n@-o-keyframes bounceInLeft {\n  0% {\n    opacity: 0;\n    -o-transform: translateX(-2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateX(30px); }\n  80% {\n    -o-transform: translateX(-10px); }\n  100% {\n    -o-transform: translateX(0); } }\n\n@keyframes bounceInLeft {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateX(-2000px);\n    transform: translateX(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateX(30px);\n    transform: translateX(30px); }\n  80% {\n    -webkit-transform: translateX(-10px);\n    transform: translateX(-10px); }\n  100% {\n    -webkit-transform: translateX(0);\n    transform: translateX(0); } }\n  .downloads .time_period {\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    z-index: 2; }\n    .downloads .time_period .percent-annotated {\n      z-index: 1; }\n  .downloads .exportForm {\n    display: flex;\n    flex-direction: column; }\n    .downloads .exportForm .check-wrapper {\n      margin-bottom: 10px; }\n      .downloads .exportForm .check-wrapper .check {\n        margin-right: 10px; }\n    .downloads .exportForm .button {\n      font-size: 20px;\n      background-color: #f9f9f9;\n      border: 1px solid #0068B9;\n      color: #0068B9;\n      padding: 20px;\n      cursor: pointer;\n      font-weight: bold;\n      text-decoration: none;\n      transition: background 0.5s, color 0.5s; }\n    .downloads .exportForm .button:hover {\n      background: #0068B9;\n      color: #f9f9f9; }\n    .downloads .exportForm .button:focus {\n      outline: none; }\n    .downloads .exportForm .text-wrapper {\n      display: flex;\n      flex-direction: column;\n      justify-content: flex-end;\n      margin-bottom: 10px; }\n      .downloads .exportForm .text-wrapper input {\n        border: none; }\n\n.response-card {\n  -webkit-animation: bounceInRight 1s ease 0.2s 1 both;\n  -moz-animation: bounceInRight 1s ease 0.2s 1 both;\n  animation: bounceInRight 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  background-color: white;\n  width: 100%;\n  margin-top: 5px; }\n\n@-webkit-keyframes bounceInRight {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateX(2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateX(-30px); }\n  80% {\n    -webkit-transform: translateX(10px); }\n  100% {\n    -webkit-transform: translateX(0); } }\n\n@-moz-keyframes bounceInRight {\n  0% {\n    opacity: 0;\n    -moz-transform: translateX(2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateX(-30px); }\n  80% {\n    -moz-transform: translateX(10px); }\n  100% {\n    -moz-transform: translateX(0); } }\n\n@-o-keyframes bounceInRight {\n  0% {\n    opacity: 0;\n    -o-transform: translateX(2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateX(-30px); }\n  80% {\n    -o-transform: translateX(10px); }\n  100% {\n    -o-transform: translateX(0); } }\n\n@keyframes bounceInRight {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateX(2000px);\n    transform: translateX(2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateX(-30px);\n    transform: translateX(-30px); }\n  80% {\n    -webkit-transform: translateX(10px);\n    transform: translateX(10px); }\n  100% {\n    -webkit-transform: translateX(0);\n    transform: translateX(0); } }\n  .response-card .card {\n    padding: 40px; }\n    .response-card .card .heading {\n      font-size: 14px;\n      margin: 3px;\n      color: #787778; }\n    .response-card .card .answer {\n      display: flex;\n      flex-direction: column;\n      justify-content: center;\n      font-size: 25px; }\n      .response-card .card .answer .topicTitle {\n        font-size: 14px; }\n      .response-card .card .answer a {\n        font-size: 12px; }\n    .response-card .card .user-question {\n      color: #0080ff;\n      font-style: italic; }\n\n.annotation-assist {\n  -webkit-animation: bounceInUp 1s ease 0.2s 1 both;\n  -moz-animation: bounceInUp 1s ease 0.2s 1 both;\n  animation: bounceInUp 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  display: flex;\n  flex-direction: column; }\n\n@-webkit-keyframes bounceInUp {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(-30px); }\n  80% {\n    -webkit-transform: translateY(10px); }\n  100% {\n    -webkit-transform: translateY(0px); } }\n\n@-moz-keyframes bounceInUp {\n  0% {\n    opacity: 0;\n    -moz-transform: translateY(2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateY(-30px); }\n  80% {\n    -moz-transform: translateY(10px); }\n  100% {\n    -moz-transform: translateY(0px); } }\n\n@-o-keyframes bounceInUp {\n  0% {\n    opacity: 0;\n    -o-transform: translateY(2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateY(-30px); }\n  80% {\n    -o-transform: translateY(10px); }\n  100% {\n    -o-transform: translateY(0px); } }\n\n@keyframes bounceInUp {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(2000px);\n    transform: translateY(2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(-30px);\n    transform: translateY(-30px); }\n  80% {\n    -webkit-transform: translateY(10px);\n    transform: translateY(10px); }\n  100% {\n    -webkit-transform: translateY(0px);\n    transform: translateY(0px); } }\n  .annotation-assist .top-row {\n    display: flex;\n    justify-content: space-between;\n    align-items: flex-end; }\n    .annotation-assist .top-row .get-previous {\n      margin-bottom: 10px;\n      opacity: 0; }\n      .annotation-assist .top-row .get-previous.active {\n        cursor: pointer;\n        opacity: 1;\n        color: #c0e6ff;\n        transition: opacity 0.5s ease; }\n        .annotation-assist .top-row .get-previous.active:hover {\n          opacity: 0.5; }\n  .annotation-assist .cards {\n    width: 75%;\n    height: 75%;\n    display: flex;\n    flex-direction: column; }\n  .annotation-assist .skip-query {\n    display: inline-block;\n    cursor: pointer;\n    color: #c0e6ff;\n    margin-top: 10px;\n    text-decoration: underline; }\n\n.query_card_background {\n  transition: background 1.7s, ease;\n  -webkit-transition: background 1.7s, ease;\n  -moz-transition: background 1.7s, ease;\n  -ms-transition: background 1.7s, ease;\n  -o-transition: background 1.7s, ease;\n  width: 100%; }\n  .query_card_background .card {\n    padding: 30px 40px 10px 40px;\n    display: flex;\n    flex-direction: column;\n    justify-content: center; }\n    .query_card_background .card .heading {\n      font-size: 14px;\n      margin: 3px;\n      color: #787778;\n      width: 50%;\n      display: inline-block; }\n    .query_card_background .card .loading {\n      margin-top: 30px;\n      margin: 0 auto; }\n    .query_card_background .card .question {\n      font-size: 30px;\n      margin: 15px 0; }\n    .query_card_background .card .purview {\n      display: flex;\n      flex-direction: row;\n      width: 100%; }\n\n.btn {\n  align-self: flex-start;\n  text-align: center;\n  border: 0;\n  padding: 10px 20px 10px 20px;\n  margin: 2px;\n  cursor: pointer;\n  font-size: 14px;\n  vertical-align: top;\n  width: 210px;\n  margin-right: 10px;\n  color: black;\n  font-weight: bold;\n  background: #c0e6ff;\n  text-transform: uppercase;\n  transition: background 1s, ease;\n  -webkit-transition: background 1s, ease;\n  -moz-transition: background 1s, ease;\n  -ms-transition: background 1s, ease;\n  -o-transition: background 1s, ease; }\n  .btn:hover {\n    background: rgba(192, 230, 255, 0.75);\n    transition: background 0.3s, ease;\n    -webkit-transition: background 0.3s, ease;\n    -moz-transition: background 0.3s, ease;\n    -ms-transition: background 0.3s, ease;\n    -o-transition: background 0.3s, ease; }\n  .btn.active, .btn .within-purview {\n    background: #000;\n    color: white; }\n  .btn.outside-of-purview, .btn.not-similar {\n    background: #ffa573; }\n    .btn.outside-of-purview:hover, .btn.not-similar:hover {\n      background: #ff8440; }\n  .btn.submit, .btn.disabled {\n    background: #4178be;\n    color: white !important; }\n    .btn.submit:hover, .btn.disabled:hover {\n      background: #346098; }\n  .btn.within-purview, .btn.similar {\n    background: #8cd211;\n    color: black; }\n    .btn.within-purview:hover, .btn.similar:hover {\n      background: #6da30d; }\n  .btn.disabled {\n    background: #b3c9e5; }\n\n*:focus {\n  outline: none !important; }\n\n.overlay {\n  z-index: -1;\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  top: -0;\n  left: -0;\n  opacity: 0.2;\n  background-color: black; }\n\n.system-selector-wrapper {\n  z-index: 2;\n  display: flex;\n  align-self: flex-end;\n  position: relative; }\n  .system-selector-wrapper .system-selector-dropdown {\n    cursor: pointer;\n    background-color: white;\n    width: 280;\n    padding: 0 20;\n    height: 35;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 10px; }\n    .system-selector-wrapper .system-selector-dropdown .icon {\n      font-size: 22px;\n      color: #0068B9; }\n  .system-selector-wrapper .system-selector {\n    box-shadow: 1px 1px 5px 5px rgba(100, 100, 100, 0.1);\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n    position: absolute;\n    top: 40;\n    right: 0;\n    padding: 20;\n    background-color: #c0e6ff; }\n    .system-selector-wrapper .system-selector::after {\n      position: absolute;\n      top: -17;\n      right: 21;\n      content: \"\\25B2\";\n      color: #c0e6ff;\n      font-size: 20;\n      transform: scaleX(1.2);\n      text-shadow: 0px -6px 5px rgba(100, 100, 100, 0.1); }\n    .system-selector-wrapper .system-selector .clickable {\n      cursor: pointer;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n      background-color: white; }\n      .system-selector-wrapper .system-selector .clickable:hover {\n        background-color: black;\n        color: white; }\n    .system-selector-wrapper .system-selector .calendar-component-right {\n      display: flex;\n      flex-direction: column;\n      justify-content: space-between; }\n      .system-selector-wrapper .system-selector .calendar-component-right .button-container {\n        display: flex;\n        flex-direction: column;\n        align-items: center;\n        flex: 1;\n        justify-content: space-between; }\n        .system-selector-wrapper .system-selector .calendar-component-right .button-container .select-option {\n          margin: 5px 0;\n          width: 200px;\n          height: 35px; }\n\n.header {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: justify;\n  -ms-flex-pack: justify;\n  -webkit-justify-content: space-between;\n  -moz-justify-content: space-between;\n  justify-content: space-between;\n  margin-bottom: 50px; }\n  .header .logo {\n    display: -webkit-box;\n    display: -webkit-flex;\n    display: -moz-flex;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-direction: normal;\n    -webkit-box-orient: horizontal;\n    -webkit-flex-direction: row;\n    -moz-flex-direction: row;\n    -ms-flex-direction: row;\n    flex-direction: row;\n    -webkit-box-align: center;\n    -ms-flex-align: center;\n    -webkit-align-items: center;\n    -moz-align-items: center;\n    align-items: center;\n    width: 500px; }\n    .header .logo img {\n      width: 80px;\n      height: 80px; }\n    .header .logo span {\n      color: white;\n      font-size: 2rem; }\n  .header .nav ul {\n    display: -webkit-box;\n    display: -webkit-flex;\n    display: -moz-flex;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n    -ms-flex-pack: justify;\n    -webkit-justify-content: space-between;\n    -moz-justify-content: space-between;\n    justify-content: space-between;\n    margin: 0; }\n    .header .nav ul li {\n      list-style-type: none;\n      font-size: 30px;\n      color: white;\n      cursor: pointer; }\n      .header .nav ul li a {\n        display: flex;\n        color: white;\n        text-decoration: none; }\n        .header .nav ul li a span {\n          transition: background 0.5s ease;\n          padding: 25px 20px; }\n          .header .nav ul li a span.active {\n            background: white;\n            color: #000; }\n      .header .nav ul li:last-child {\n        padding-right: 0; }\n\n.accuracy-pop-up {\n  flex: 1;\n  display: flex;\n  justify-content: flex-end;\n  position: relative; }\n  .accuracy-pop-up .display-text {\n    cursor: pointer;\n    display: inline-block;\n    color: #0068B9;\n    text-decoration: underline;\n    align-self: flex-end; }\n  .accuracy-pop-up .pop-up-wrapper {\n    position: relative; }\n  .accuracy-pop-up .pop-up {\n    box-shadow: 1px 1px 5px 5px rgba(100, 100, 100, 0.1);\n    position: absolute;\n    top: -20;\n    left: -750;\n    padding: 10;\n    width: 630;\n    display: flex;\n    flex-direction: column;\n    background-color: white; }\n    .accuracy-pop-up .pop-up::after {\n      position: absolute;\n      top: 43;\n      left: 647;\n      content: \"\\25B6\";\n      transform: scaleY(1.5);\n      color: white;\n      text-shadow: 6px 0px 5px rgba(100, 100, 100, 0.1); }\n    .accuracy-pop-up .pop-up .close {\n      position: absolute;\n      cursor: pointer;\n      top: 10;\n      color: #0068B9;\n      left: 625;\n      font-size: 20px; }\n    .accuracy-pop-up .pop-up .top-row {\n      display: flex;\n      flex-direction: column;\n      align-items: center;\n      margin-bottom: 10px; }\n      .accuracy-pop-up .pop-up .top-row .watson-logo {\n        max-height: 50px; }\n      .accuracy-pop-up .pop-up .top-row .pop-up-header {\n        font-size: 20px;\n        font-weight: 600;\n        margin: 10px; }\n    .accuracy-pop-up .pop-up .bottom-row {\n      display: flex;\n      flex: 1; }\n      .accuracy-pop-up .pop-up .bottom-row .info-box {\n        padding: 0 16px;\n        flex: 1; }\n        .accuracy-pop-up .pop-up .bottom-row .info-box .category-header {\n          font-weight: bold; }\n      .accuracy-pop-up .pop-up .bottom-row .component-left {\n        background-color: #FFA572;\n        margin-right: 2px; }\n      .accuracy-pop-up .pop-up .bottom-row .component-right {\n        background-color: #8CD211; }\n      .accuracy-pop-up .pop-up .bottom-row .questions {\n        padding: 0;\n        list-style-type: none;\n        font-style: italic;\n        font-weight: bold; }\n\n.app {\n  width: 80%;\n  margin: auto; }\n", ""]);
 
 	// exports
 
@@ -53078,7 +53225,7 @@
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
 	  var d3 = {
-	    version: "3.5.16"
+	    version: "3.5.17"
 	  };
 	  var d3_arraySlice = [].slice, d3_array = function(list) {
 	    return d3_arraySlice.call(list);
@@ -56603,7 +56750,7 @@
 	        λ0 = λ, sinφ0 = sinφ, cosφ0 = cosφ, point0 = point;
 	      }
 	    }
-	    return (polarAngle < -ε || polarAngle < ε && d3_geo_areaRingSum < 0) ^ winding & 1;
+	    return (polarAngle < -ε || polarAngle < ε && d3_geo_areaRingSum < -ε) ^ winding & 1;
 	  }
 	  function d3_geo_clipCircle(radius) {
 	    var cr = Math.cos(radius), smallRadius = cr > 0, notHemisphere = abs(cr) > ε, interpolate = d3_geo_circleInterpolate(radius, 6 * d3_radians);

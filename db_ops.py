@@ -1,10 +1,11 @@
-import logging
+import ConfigParser
 import csv
+import datetime
+import logging
+import tempfile
+
 import ibm_db
 import ibm_db_dbi
-import datetime
-import ConfigParser
-import tempfile
 
 # TODO: export needs to consider the checkbox variables
 
@@ -220,7 +221,7 @@ def get_annotated(system_name):
 def get_similar(answer):  # TODO: write this method
     acceptable_annotation_score = 60
 
-    output_fields = ["Question_Text", "Annotation_Score"]
+    # output_fields = ["Question_Text", "Annotation_Score"]
 
     # cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
     # cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
@@ -247,13 +248,13 @@ def get_exact_match(question, answer):
 
 def get_question(system_name=None):
     '''Get a random question from the given system'''
-
     if system_name and system_name != '':
         cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\' AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'.format(system_name.upper())
     else:
         cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
 
     result = execute_cmd(cmd, True)
+    print len(result)
     if len(result) > 0:
         qdata = result[0]
 
@@ -270,9 +271,18 @@ def get_question(system_name=None):
     return False
 
 
+def get_question_from_id(q_id):
+    cmd = "SELECT QUESTION_TEXT, QUESTION_ID, SYSTEM_ANSWER FROM \"Questions\" WHERE QUESTION_ID = ?"
+    result = execute_cmd(cmd, True, parameters=[q_id])
+
+    qdata = result[0]
+    question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
+
+    return {'question': question, 'similar': get_similar(qdata[2])}
+
+
 def update_question(question_id, is_on_topic, human_performance_rating=0):
     '''Update the annotation scores for the give question id'''
-
     cmd = "UPDATE(SELECT * FROM \"Questions\" WHERE Question_ID='{0}') \
         SET IS_ANNOTATED='{1}', IS_IN_PURVIEW='{2}', Annotation_Score='{3}'".format(question_id, int(True), int(is_on_topic), human_performance_rating)
 
@@ -304,6 +314,7 @@ def upload_questions(system_name, file):
 
 
 def execute_cmd(cmd, fetch_results=False, parameters=None):
+    results = None
     cursor = connect_to_db()
     cursor.execute(cmd, parameters)
     if fetch_results:
@@ -334,7 +345,7 @@ def connect_to_db():
     cursor = conn.cursor()
     return cursor
 
-try:
-    init_database()
-except:
-    pass
+# try:
+    # init_database()
+# except:
+    # pass
