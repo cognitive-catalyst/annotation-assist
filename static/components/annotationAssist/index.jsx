@@ -6,7 +6,7 @@ import SystemSelector from 'systemSelector';
 import Header from 'header';
 import $ from 'jquery';
 
-const ON_TOPIC_INITIALIZED = true;
+const ON_TOPIC_INITIALIZED = false;
 
 export default class AnnotationAssist extends React.Component{
 
