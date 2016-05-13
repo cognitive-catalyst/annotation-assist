@@ -254,7 +254,6 @@ def get_question(system_name=None):
         cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
 
     result = execute_cmd(cmd, True)
-    print len(result)
     if len(result) > 0:
         qdata = result[0]
 

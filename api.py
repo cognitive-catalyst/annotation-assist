@@ -112,10 +112,6 @@ def export_gt():
 
     for line in gt:
         f.writerow(_encode_me(line))
-        print line['System_Answer'].encode('latin-1')
-        print
-        print repr(line['System_Answer'].encode('latin-1'))
-        print
 
     buf.seek(0)
 
