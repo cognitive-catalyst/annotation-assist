@@ -64,7 +64,7 @@ export default class AnnotationAssist extends React.Component {
 
     getPreviousQuestion() {
         $.ajax({
-            url: `/api/get_question/' ${this.state.previousQuestionId}`,
+            url: `/api/get_question/${this.state.previousQuestionId}`,
             type: 'GET',
             statusCode: {
                 200: (resp) => this.setNewQuestion(resp),

@@ -59266,7 +59266,7 @@
 	            var _this2 = this;
 
 	            _jquery2.default.ajax({
-	                url: '/api/get_question/\' ' + this.state.previousQuestionId,
+	                url: '/api/get_question/' + this.state.previousQuestionId,
 	                type: 'GET',
 	                statusCode: {
 	                    200: function _(resp) {
