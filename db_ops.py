@@ -111,8 +111,10 @@ def init_database():
     for name in table_names:
         try:
             _create_table(name, tables[name])
+            logging.info('Creating table "%s".', name)
+
         except ibm_db_dbi.ProgrammingError:
-            logging.warning(' %s table already exists in database.', name)
+            logging.info('Preexisting table "%s" detected.', name)
 
 
 def _create_table(name, options):
