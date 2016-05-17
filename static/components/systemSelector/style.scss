@@ -1,10 +1,4 @@
-
-*:focus {outline:none !important;}
-
-* {
-    z-index:inherit;
-}
-
+@import '~sass/globals/variables';
 .overlay{
     z-index:-1;
     position:fixed;

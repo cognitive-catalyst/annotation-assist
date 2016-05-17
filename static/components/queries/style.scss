@@ -1,0 +1,64 @@
+@import '~sass/globals/variables';
+@import '~sass/animations/animate';
+
+.downloads{
+    @include bounceInLeft;
+    margin: 0 auto;
+    // width: 960px;
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+    justify-content: flex-start;
+
+    .time_period{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 2;
+        .percent-annotated{
+            z-index: 1;
+        }
+    }
+
+    .exportForm{
+        display: flex;
+        flex-direction: column;
+
+
+        .check-wrapper{
+            margin-bottom:10px;
+            .check{
+                    margin-right:10px;
+            }
+        }
+        .button {
+          font-size: 20px;
+          background-color: #f9f9f9;
+          border: 1px solid $blue-dark;
+          color: $blue-dark;
+          padding: 20px;
+          cursor: pointer;
+          font-weight: bold;
+          text-decoration: none;
+          transition: background 0.5s, color 0.5s; }
+
+        .button:hover {
+            background: $blue-dark;
+            color: #f9f9f9;
+        }
+        .button:focus {
+            outline: none;
+        }
+
+        .text-wrapper{
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            margin-bottom:10px;
+            input{
+                border:none;
+            }
+        }
+
+    }
+}
