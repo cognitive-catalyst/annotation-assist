@@ -1,61 +1,53 @@
+import React from 'react';
 
-var
-React = require('react/addons'),
+export default class Form extends React.Component {
+    constructor(props) {
+        super(props);
 
-Form = React.createClass({
-
-    getInitialState: function() {
-        return {
+        this.state = {
             gt_box: false,
-
         };
-    },
+    }
 
-    gtBoxChecked: function(){
-        var gt_box = React.findDOMNode(this.refs.gt_box);
+    gtBoxChecked() {
+        const gtBox = this.refs.gt_box;
 
-        this.setState({gt_box:gt_box.checked});
-    },
+        this.setState({ gt_box: gtBox.checked });
+    }
 
-    handleSubmit: function(e){
+    handleSubmit(e) {
         e.preventDefault();
 
-        var form = React.findDOMNode(this.refs.form);
+        const form = this.refs.form;
         form.submit();
-        // var fData = new FormData(form);
+    }
 
-        // this.props.onSubmit(fdata)
-
-    },
-
-    render: function() {
+    render() {
         return (
             <div className="buttons">
-                <form className="exportForm" action={this.props.loc} method='post' ref='form'>
+                <form className="exportForm" action={this.props.loc} method="post" ref="form">
 
                     <div className="checks">
                         <h3> Select the questions you would like to export! </h3>
 
                         <div className="check-wrapper">
-                            <input className="check" type="checkbox" name="annotated_good" value="annotated_good" defaultChecked/>
+                            <input className="check" type="checkbox" name="annotated_good" value="annotated_good" defaultChecked />
                             <span>In Purview Questions with Good/Perfect Answers</span>
                         </div>
                         <div className="check-wrapper">
-                            <input className="check" type="checkbox" name="annotated_bad" value="annotated_bad" defaultChecked/>
+                            <input className="check" type="checkbox" name="annotated_bad" value="annotated_bad" defaultChecked />
                             <span>In Purview Questions with Incorrect/Poor Answers</span>
                         </div>
                         <div className="check-wrapper">
-                            <input className="check" type="checkbox" name="off_topic" value="off_topic" defaultChecked/>
+                            <input className="check" type="checkbox" name="off_topic" value="off_topic" defaultChecked />
                             <span>Out of Purview Questions</span>
                         </div>
                     </div>
-                    <input type='hidden' name='system-name' value={this.props.system} />
+                    <input type="hidden" name="system-name" value={this.props.system} />
 
-                    <input className='button' type="submit" value="Download" />
+                    <input className="button" type="submit" value="Download" />
                 </form>
             </div>
         );
     }
-});
-
-module.exports = Form;
+}

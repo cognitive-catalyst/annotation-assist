@@ -1,112 +1,32 @@
-import React from 'react/addons';
-import Button from 'button';
+import React from 'react';
 import QueryCard from 'queryCard';
 import ResponseCard from 'responseCard';
 import SystemSelector from 'systemSelector';
-import Header from 'header';
 import $ from 'jquery';
+import './style.scss';
 
 const ON_TOPIC_INITIALIZED = false;
 
-export default class AnnotationAssist extends React.Component{
+export default class AnnotationAssist extends React.Component {
 
-    constructor(props){
-        super(props)
+    constructor(props) {
+        super(props);
 
         this.state = {
-            previousQuestionId:undefined,
-            questionId:'',
-            questionText : '',
+            previousQuestionId: undefined,
+            questionId: '',
+            questionText: '',
             answer: '',
 
-            similarQuestions:[],
+            similarQuestions: [],
             similarConf: undefined,
             new_questions: true,
             onTopicClicked: ON_TOPIC_INITIALIZED,
             current_system: 'ALL SYSTEMS',
             systems: [],
 
-            loading: false
-        }
-    }
-
-    getSystems(){
-        $.ajax({
-            url: '/api/get_systems',
-            type: "GET",
-            success: function(resp) {
-                var systems = ['ALL SYSTEMS'].concat(JSON.parse(resp).systems);
-                this.setState({systems:systems});
-            }.bind(this)
-        })
-    }
-
-    noAnnotations() {
-        this.setState({
-            new_questions: false,
             loading: false,
-            QuestionText: "NO QUESTIONS TO ANNOTATE"
-        });
-    }
-
-    setNewQuestion(resp){
-        const q_data = JSON.parse(resp);
-
-        let similar_questions = []
-        let similar_conf = 0
-        for (var q in q_data.similar){
-            similar_questions.push(q_data.similar[q][0])
-            similar_conf = Math.max(similar_conf, q_data.similar[q][1])
-        }
-
-        this.setState({
-            new_questions: true,
-            QuestionText: q_data.question.text,
-            similarQuestions: similar_questions,
-            questionId: q_data.question.id,
-            answer: q_data.question.answer,
-            loading: false,
-            similarConf:similar_conf
-        })
-    }
-
-    getPreviousQuestion() {
-        $.ajax({
-                url:  '/api/get_question/' + this.state.previousQuestionId,
-                type: "GET",
-                statusCode:{
-                    200: (resp) => this.setNewQuestion(resp),
-                    204: () => this.noAnnotations()
-                }
-        });
-        this.setState({
-            previousQuestionId:undefined,
-            answer: '',
-            QuestionText : '',
-            similarQuestions:[],
-            onTopicClicked: ON_TOPIC_INITIALIZED,
-            loading: true
-        });
-
-    }
-
-    newQuestion() {
-        $.ajax({
-                url:  '/api/get_question',
-                type: "POST",
-                data: {system_name: (this.state.current_system=="ALL SYSTEMS") ? '':this.state.current_system},
-                statusCode:{
-                    200: (resp) => this.setNewQuestion(resp),
-                    204: () => this.noAnnotations()
-                }
-        });
-        this.setState({
-            answer: '',
-            QuestionText : '',
-            similarQuestions:[],
-            onTopicClicked: ON_TOPIC_INITIALIZED,
-            loading: true
-        });
+        };
     }
 
     componentWillMount() {
@@ -114,91 +34,177 @@ export default class AnnotationAssist extends React.Component{
         this.newQuestion();
     }
 
-    notSimilar() {
-        this.setState({similarQuestions: []});
-    }
-
-    similarToOthers(perf) {
-        this.submitToDB(perf)
-    }
-
-    onTopic(){
+    onTopic = () => {
         this.setState({
-            onTopicClicked:true,
+            onTopicClicked: true,
         });
     }
 
-    offTopic() {
+    setNewQuestion(resp) {
+        const qData = JSON.parse(resp);
+
+        const similarQuestions = [];
+        let similarConf = 0;
+        let q;
+        for (q of qData.similar) {
+            similarQuestions.push(q[0]);
+            similarConf = Math.max(similarConf, q[1]);
+        }
+
         this.setState({
-            previousQuestionId:this.state.questionId
-        })
-
-        $.ajax({
-            url: '/api/update',
-            type: "POST",
-            data: {_id:this.state.questionId,
-                    on_topic: false,
-                    human_performance: 0,
-                  },
-            error: function(){
-                console.log("there has been an error") //TODO: DISPLAY ERRORS?
-            }.bind(this)
+            new_questions: true,
+            QuestionText: qData.question.text,
+            questionId: qData.question.id,
+            answer: qData.question.answer,
+            loading: false,
+            similarQuestions,
+            similarConf,
         });
-
-        this.newQuestion();
-
     }
 
-    submitToDB(performance) {
+    getPreviousQuestion() {
+        $.ajax({
+            url: `/api/get_question/' ${this.state.previousQuestionId}`,
+            type: 'GET',
+            statusCode: {
+                200: (resp) => this.setNewQuestion(resp),
+                204: () => this.noAnnotations(),
+            },
+        });
         this.setState({
-            previousQuestionId:this.state.questionId
-        })
+            previousQuestionId: undefined,
+            answer: '',
+            QuestionText: '',
+            similarQuestions: [],
+            onTopicClicked: ON_TOPIC_INITIALIZED,
+            loading: true,
+        });
+    }
+
+    getSystems() {
+        $.ajax({
+            url: '/api/get_systems',
+            type: 'GET',
+            success: (resp) => {
+                const systems = ['ALL SYSTEMS'].concat(JSON.parse(resp).systems);
+                this.setState({ systems });
+            },
+        });
+    }
+
+    submitToDB = (performance) => {
+        this.setState({
+            previousQuestionId: this.state.questionId,
+        });
         $.ajax({
             url: '/api/update',
-            type: "POST",
-            data: {_id:this.state.questionId,
+            type: 'POST',
+            data: { _id: this.state.questionId,
                     on_topic: this.state.onTopicClicked,
                     human_performance: performance,
                   },
-            error: function(data){
-                console.log("there has been an error") //TODO: DISPLAY ERRORS?
-            }.bind(this)
+            error: () => {
+                console.log('there has been an error'); // TODO: DISPLAY ERRORS?
+            },
         });
 
         this.newQuestion();
     }
 
-    changeActiveSystem(new_system){
-        this.setState({current_system:new_system},this.newQuestion)
+    offTopic = () => {
+        this.setState({
+            previousQuestionId: this.state.questionId,
+        });
+
+        $.ajax({
+            url: '/api/update',
+            type: 'POST',
+            data: { _id: this.state.questionId,
+                    on_topic: false,
+                    human_performance: 0,
+                  },
+            error: () => {
+                console.log('there has been an error'); // TODO: DISPLAY ERRORS?
+            },
+        });
+
+        this.newQuestion();
+    }
+
+    similarToOthers = (perf) => {
+        this.submitToDB(perf);
+    }
+    notSimilar = () => this.setState({ similarQuestions: [] });
+
+    changeActiveSystem = (newSystem) => {
+        this.setState({ current_system: newSystem }, this.newQuestion);
+    }
+
+    noAnnotations() {
+        this.setState({
+            new_questions: false,
+            loading: false,
+            QuestionText: 'NO QUESTIONS TO ANNOTATE',
+            onTopicClicked: false,
+        });
+    }
+
+    newQuestion = () => {
+        $.ajax({
+            url: '/api/get_question',
+            type: 'POST',
+            data: { system_name: (this.state.current_system === 'ALL SYSTEMS') ? '' : this.state.current_system },
+            statusCode: {
+                200: (resp) => this.setNewQuestion(resp),
+                204: () => this.noAnnotations(),
+            },
+        });
+        this.setState({
+            answer: '',
+            QuestionText: '',
+            similarQuestions: [],
+            onTopicClicked: ON_TOPIC_INITIALIZED,
+            loading: true,
+        });
     }
 
     render() {
         return (
 
-            <div className='annotation-assist'>
-                <div className='top-row'>
-                    <a className={this.state.previousQuestionId!=undefined?'get-previous active':'get-previous'}onClick={this.state.previousQuestionId != undefined ? this.getPreviousQuestion.bind(this):''}>&#8592; See Previous</a>
+            <div className="annotation-assist">
+                <div className="top-row">
+                    <a
+                      className={this.state.previousQuestionId !== undefined ? 'get-previous active' : 'get-previous'}
+                      onClick={this.state.previousQuestionId !== undefined ? this.getPreviousQuestion.bind(this) : ''}
+                    >
+                        ← See Previous
+                    </a>
                     <SystemSelector
-                        current_system={this.state.current_system}
-                        options={this.state.systems}
-                        updateSystem={this.changeActiveSystem.bind(this)}/>
+                      current_system={this.state.current_system}
+                      options={this.state.systems}
+                      updateSystem={this.changeActiveSystem}
+                    />
                 </div>
-                <QueryCard question={this.state.QuestionText}
-                    onTopic={this.onTopic.bind(this)}
-                    offTopic={this.offTopic.bind(this)}
-                    on_topic={this.state.onTopicClicked}
-                    loading={this.state.loading}
-                    new_questions={this.state.new_questions}/>
-                <div style= {this.state.onTopicClicked & !this.state.loading?  {zIndex: -1} : {display: 'none'}}>
-                    <ResponseCard answer={this.state.answer}
-                                  other_questions={this.state.similarQuestions}
-                                  similar={this.similarToOthers.bind(this)}
-                                  notSimilar={this.notSimilar.bind(this)}
-                                  submitToDB={this.submitToDB.bind(this)}/>
+                <QueryCard
+                  question={this.state.QuestionText}
+                  onTopic={this.onTopic}
+                  offTopic={this.offTopic}
+                  on_topic={this.state.onTopicClicked}
+                  loading={this.state.loading}
+                  new_questions={this.state.new_questions}
+                />
+                <div style={this.state.onTopicClicked & !this.state.loading ? { zIndex: -1 } : { display: 'none' }}>
+                    <ResponseCard
+                      answer={this.state.answer}
+                      other_questions={this.state.similarQuestions}
+                      similar={this.similarToOthers}
+                      notSimilar={this.notSimilar}
+                      submitToDB={this.submitToDB}
+                    />
                 </div>
-                <div className='skip-query' onClick={this.newQuestion.bind(this)} style={this.state.loading ? {display: 'none'} : {display: 'block'}}>Skip This Query</div>
+                <div className="skip-query" onClick={this.newQuestion} style={this.state.loading ? { display: 'none' } : { display: 'block' }}>Skip This Query</div>
             </div>
 
         );
     }
-};
+}

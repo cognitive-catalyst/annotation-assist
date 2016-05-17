@@ -1,21 +1,11 @@
+import React from 'react';
+import Nav from './nav';
+import Logo from './logo';
+import './style.scss';
 
-var
-
-React  = require('react/addons'),
-Nav    = require('./nav'),
-Logo   = require('./logo'),
-
-Header = React.createClass({
-
-	render: function(){
-
-		return (
-			<header className='header'>
-				<Logo />
-				<Nav path={this.props.path}/>
-			</header>
-		);
-	}
-});
-
-module.exports = Header;
+export default (props) => (
+    <header className="header">
+        <Logo />
+        <Nav path={props.path} />
+    </header>
+);

@@ -1,7 +1,4 @@
-
-*:focus {outline:none !important;}
-
-
+@import '~sass/globals/variables';
 .overlay{
     z-index:-1;
     position:fixed;

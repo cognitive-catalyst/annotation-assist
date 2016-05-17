@@ -1,19 +1,9 @@
+import React from 'react';
+import LogoImg from 'img/watson-logo.svg';
 
-var
-
-React = require('react/addons'),
-LogoImg = require('img/watson-logo.svg'),
-
-Logo  = React.createClass({
-
-	render: function(){
-		return (
-			<div className='logo'>
-				<img src={LogoImg} />
-				<span>Annotation Assistant</span>
-			</div>
-		);
-	}
-});
-
-module.exports = Logo;
+export default () => (
+    <div className="logo">
+        <img src={LogoImg} role="presentation" />
+        <span>Annotation Assistant</span>
+    </div>
+);

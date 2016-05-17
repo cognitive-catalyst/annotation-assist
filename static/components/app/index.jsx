@@ -1,21 +1,13 @@
-import React from 'react'
-import Header from '../header'
-import "../../sass/main.scss"
-export default class App extends React.Component{
+import React from 'react';
+import Header from '../header';
+import './style.scss';
+import 'sass/main.scss';
 
-    constructor(props){
-        super(props)
-        this.state={route: window.history};
-    }
+const app = ({ location, children }) => (
+    <div className="app">
+        <Header path={location.pathname} />
+        {children}
+    </div>
+);
 
-
-    render() {
-        return (
-            <div className='app'>
-                <Header path={this.props.location.pathname}/>
-                {this.props.children}
-            </div>
-        )
-    }
-}
-
+export default app;
