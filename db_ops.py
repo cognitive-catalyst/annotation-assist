@@ -183,20 +183,15 @@ def _system_does_exist(system_name):
 
 
 def get_percent(system_name=None):
-    if system_name != '':
-        cmd1 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\''.format(system_name.upper())
-        cmd2 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\' AND IS_ANNOTATED=\'1\''.format(system_name.upper())
+    if system_name != '' and system_name is not None:
+        cmd = 'SELECT FLOAT(SUM(IS_ANNOTATED))/COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=?'
+        param = [system_name.upper()]
     else:
-        cmd1 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id'
-        cmd2 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'1\''
+        cmd = 'SELECT FLOAT(SUM(IS_ANNOTATED))/COUNT(*) FROM "Questions"'
+        param = None
 
-    total = execute_cmd(cmd1, True)[0][0]
-    annotated = execute_cmd(cmd2, True)[0][0]
-
-    if total != 0:
-        return float(annotated) / total * 100
-    else:
-        return 0.0
+    percentage = execute_cmd(cmd, True, param)[0][0]
+    return percentage * 100
 
 
 def get_annotated(system_name):
@@ -216,11 +211,6 @@ def get_annotated(system_name):
 def get_similar(answer):  # TODO: write this method
     acceptable_annotation_score = 60
 
-    # output_fields = ["Question_Text", "Annotation_Score"]
-
-    # cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
-    # cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
-
     cmd = "Select Question_Text, Annotation_Score FROM \"Questions\" WHERE System_Answer=? AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>? "
     params = answer, acceptable_annotation_score - 1
 
@@ -236,19 +226,23 @@ def get_systems():
 
 
 def get_exact_match(question, answer):
-    cmd = u"SELECT Is_In_Purview, Annotation_Score FROM \"Questions\" WHERE Question_Text='{0}' AND System_Answer='{1}' AND IS_ANNOTATED='1' ".format(question.replace("'", "''"), answer.replace("'", "''"))
+    # cmd = u"SELECT Is_In_Purview, Annotation_Score FROM \"Questions\" WHERE Question_Text='{0}' AND System_Answer='{1}' AND IS_ANNOTATED='1' ".format(question.replace("'", "''"), answer.replace("'", "''"))
+    cmd = 'SELECT Is_In_Purview, Annotation_Score FROM "Questions" WHERE QUESTION_TEXT=? and System_Answer=? and IS_ANNOTATED=?'
+    params = question, answer, 1
 
-    return execute_cmd(cmd, True)
+    return execute_cmd(cmd, True, params)
 
 
 def get_question(system_name=None):
     '''Get a random question from the given system'''
+    params = None
     if system_name and system_name != '':
-        cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\' AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'.format(system_name.upper())
+        cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=? AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
+        params = [system_name.upper()]
     else:
         cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
 
-    result = execute_cmd(cmd, True)
+    result = execute_cmd(cmd, True, params)
     if len(result) > 0:
         qdata = result[0]
 
@@ -277,10 +271,9 @@ def get_question_from_id(q_id):
 
 def update_question(question_id, is_on_topic, human_performance_rating=0):
     '''Update the annotation scores for the give question id'''
-    cmd = "UPDATE(SELECT * FROM \"Questions\" WHERE Question_ID='{0}') \
-        SET IS_ANNOTATED='{1}', IS_IN_PURVIEW='{2}', Annotation_Score='{3}'".format(question_id, int(True), int(is_on_topic), human_performance_rating)
-
-    execute_cmd(cmd)
+    cmd = 'UPDATE(SELECT * FROM "Questions" WHERE Question_ID=?) SET IS_ANNOTATED=?, IS_IN_PURVIEW=?, Annotation_Score=?'
+    params = question_id, int(True), int(is_on_topic), human_performance_rating
+    execute_cmd(cmd, False, params)
 
 
 def upload_questions(system_name, file):
@@ -296,15 +289,14 @@ def upload_questions(system_name, file):
     tmp.seek(0)
     reader = csv.DictReader(tmp)
 
+    cmd = 'INSERT INTO "Questions" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)'
     params = []
     for i, row in enumerate(reader):
         par = row['QuestionText'].decode('latin-1'), row['TopAnswerText'].decode('latin-1'), row['TopAnswerConfidence'], upload_id
         params.append(par)
 
-    cmd = "INSERT INTO \"Questions\" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)"
-
-    tmp.close()
     execute_many(cmd, params)
+    tmp.close()
 
 
 def execute_cmd(cmd, fetch_results=False, parameters=None):
