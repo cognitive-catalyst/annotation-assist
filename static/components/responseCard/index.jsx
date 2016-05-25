@@ -2,9 +2,9 @@ import React from 'react';
 import Button from 'button';
 import './style.scss';
 
-const SimilarQuestions = () => (
+const SimilarQuestions = ({ questions }) => (
     <ol className="other-question-container">
-        {this.props.questions.map((item, i) => <li key={i} className="other-question">{item}</li>)}
+        {questions.map((item, i) => <li key={i} className="other-question">{item}</li>)}
     </ol>
 );
 
