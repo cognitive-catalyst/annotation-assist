@@ -59158,7 +59158,7 @@
 	        };
 
 	        _this.similarToOthers = function (perf) {
-	            _this.submitToDB(perf);
+	            _this.submitToDB(80);
 	        };
 
 	        _this.notSimilar = function () {

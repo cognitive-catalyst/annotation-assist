@@ -132,7 +132,7 @@ export default class AnnotationAssist extends React.Component {
     }
 
     similarToOthers = (perf) => {
-        this.submitToDB(perf);
+        this.submitToDB(80);
     }
     notSimilar = () => this.setState({ similarQuestions: [] });
 
