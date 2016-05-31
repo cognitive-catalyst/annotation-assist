@@ -14,7 +14,6 @@ config.read('config/properties.ini')
 
 
 table_names = ["Systems", "Uploads", "Questions"]
-
 tables = {
     'Systems': {
         'columns': [
@@ -331,7 +330,7 @@ def connect_to_db():
     cursor = conn.cursor()
     return cursor
 
-# try:
-    # init_database()
-# except:
-    # pass
+try:
+    init_database()
+except:
+    pass

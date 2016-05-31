@@ -1,21 +1,32 @@
 import ConfigParser
 import csv
 import json
+import logging
 import math
 import os
 import StringIO
+import sys
+from importlib import import_module
 
 from flask import Blueprint, Response, request, send_file
 
-import db_ops
+# import db_ops_db2 as db_ops
 
 blueprint = Blueprint("api", __name__)
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
 
+database = config.get('properties', 'database')
+if database in ['db2', 'postgres']:
+    db_ops = import_module('db_ops.{0}'.format(database))
+else:
+    logging.error('Database value must be "db2" or "postgres" NOT "{0}". Modify the database property in "config/properties.ini" to an allowed value.'.format(database))
+    sys.exit()
+
 
 @blueprint.route('/delete_db', methods=['POST'])
 def delete():
+
     db_ops.delete_all()
     return 'done'
 
