@@ -1,14 +1,15 @@
 import ConfigParser
 import csv
+import datetime
 import json
 import logging
 import math
 import os
 import StringIO
-import sys
-from importlib import import_module
 
 from flask import Blueprint, Response, request, send_file
+
+from db_ops import get_manager
 
 # import db_ops_db2 as db_ops
 
@@ -16,12 +17,13 @@ blueprint = Blueprint("api", __name__)
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
 
-database = config.get('properties', 'database')
-if database in ['db2', 'postgres']:
-    db_ops = import_module('db_ops.{0}'.format(database))
-else:
-    logging.error('Database value must be "db2" or "postgres" NOT "{0}". Modify the database property in "config/properties.ini" to an allowed value.'.format(database))
-    sys.exit()
+db_ops = get_manager(
+    config.get('database', 'database_type'),
+    config.get('database', 'hostname'),
+    config.get('database', 'db'),
+    config.get('database', 'username'),
+    config.get('database', 'password'),
+)
 
 
 @blueprint.route('/delete_db', methods=['POST'])
@@ -107,7 +109,7 @@ def get_all_gt():
 
 def _encode_me(d):
     for key in d:
-        if type(d[key]) not in [int, float]:
+        if type(d[key]) not in [int, bool, datetime.datetime, float]:
             d[key] = d[key].encode('latin-1')
     return d
 

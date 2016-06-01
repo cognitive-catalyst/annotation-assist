@@ -29,9 +29,8 @@ Create a namespace for your registry (I recommend using your username as registr
 Run the following command to login to Bluemix containers.  
 `cf ic login`
 
-Push the [DB2 Express-c image](https://hub.docker.com/r/ibmcom/db2express-c/) to your registry. This step will take approximately 15 minutes.  
+From inside the db2container folder, you can build the db2 image in your bluemix registry.  
 `cf ic build -t registry.ng.bluemix.net/<registry-name>/db2 .`
-
 
 Start a bluemix container (named container). **Note: The password requirements are *extremely* strict. I recommend using a random character string (make sure to write it down as you will need it later)**   
 `cf ic run -p 50000:50000 -m 256 -e DB2INST1_PASSWORD=<password> -e LICENSE=accept --name container registry.ng.bluemix.net/<registry-name>/db2:latest db2start`
@@ -47,7 +46,7 @@ If the ID of your container is listed next to one of the IP's, then skip the fol
 `cf ic ip bind <ip-address> container`
 
 Run the following script to initialize the database  
-`db2container/create_database.sh`
+`./create_database.sh`
 
 Update config/properties.ini for annotation-assist:  
 hostname = the public ip address you bound your container to  

@@ -207,7 +207,7 @@ def get_annotated(system_name):
     return gt
 
 
-def get_similar(answer):  # TODO: write this method
+def get_similar(answer):
     acceptable_annotation_score = 60
 
     cmd = "Select Question_Text, Annotation_Score FROM \"Questions\" WHERE System_Answer=? AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>? "
@@ -316,11 +316,11 @@ def execute_many(cmd, parameters):
 
 
 def connect_to_db():
-    db = config.get('db2', 'db')
-    hostname = config.get('db2', 'hostname')
-    port = config.get('db2', 'port')
-    user = config.get('db2', 'username')
-    pw = config.get('db2', 'password')
+    db = config.get('database', 'db')
+    hostname = config.get('database', 'hostname')
+    port = config.get('database', 'port')
+    user = config.get('database', 'username')
+    pw = config.get('database', 'password')
 
     connect_string = "DATABASE=" + db + ";HOSTNAME=" + hostname + ";PORT=" + port + ";UID=" + user + ";PWD=" + pw + ";"
 
