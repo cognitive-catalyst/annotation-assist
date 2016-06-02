@@ -210,6 +210,10 @@ class Postgres(DBManager):
 
             params = []
             for i, row in enumerate(reader):
+
+                if len(row['TopAnswerText']) > MAX_ANS_LEN:
+                    return 'TopAnswerText field too long'
+
                 par = row['QuestionText'].decode('latin-1'), row['TopAnswerText'].decode('latin-1'), row['TopAnswerConfidence'], upload_id
                 params.append(par)
 
