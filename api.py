@@ -1,6 +1,8 @@
 import ConfigParser
 import csv
+import datetime
 import json
+import logging
 import math
 import os
 import StringIO
@@ -9,13 +11,27 @@ from flask import Blueprint, Response, request, send_file
 
 import db_ops
 
+print db_ops
+# from db_ops import get_manager
+
+# import db_ops_db2 as db_ops
+
 blueprint = Blueprint("api", __name__)
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
 
+# db_ops = get_manager(
+#     config.get('database', 'database_type'),
+#     config.get('database', 'hostname'),
+#     config.get('database', 'db'),
+#     config.get('database', 'username'),
+#     config.get('database', 'password'),
+# )
+
 
 @blueprint.route('/delete_db', methods=['POST'])
 def delete():
+
     db_ops.delete_all()
     return 'done'
 
@@ -29,7 +45,11 @@ def upload():
     if ext not in ['.csv']:
         return Response(json.dumps({'message': 'Invalid File Type'}), status=400)
 
-    db_ops.upload_questions(system_name, data)
+    upload_status = db_ops.upload_questions(system_name, data)
+
+    if upload_status is not True:
+        return Response(json.dumps({'message': upload_status}), status=400)
+
     return Response(json.dumps({'message': 'Upload Successful'}), status=200)
 
 
@@ -96,7 +116,7 @@ def get_all_gt():
 
 def _encode_me(d):
     for key in d:
-        if type(d[key]) not in [int, float]:
+        if type(d[key]) not in [int, bool, datetime.datetime, float]:
             d[key] = d[key].encode('latin-1')
     return d
 

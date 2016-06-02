@@ -33139,8 +33139,16 @@
 
 	                        form.reset();
 	                    } else {
-	                        _this.setState({ upload_status: 'failed' });
+	                        var message = void 0;
+	                        try {
+	                            message = JSON.parse(xhr.responseText).message;
+	                        } catch (error) {
+	                            message = 'Upload Failed';
+	                        }
+	                        _this.setState({ upload_status: 'failed', upload_message: message });
 	                    }
+
+	                    form.reset();
 	                }
 	            };
 
@@ -33151,6 +33159,7 @@
 	            log_uri: 'No File Found',
 	            trying_to_delete: false,
 	            upload_status: 'not started',
+	            upload_message: '',
 	            systems: []
 	        };
 	        return _this;
@@ -33231,7 +33240,8 @@
 	                            _react2.default.createElement(
 	                                'span',
 	                                { className: 'filename', style: { display: this.state.upload_status === 'failed' ? '' : 'none' } },
-	                                '✗ Upload Failed'
+	                                '✗   ',
+	                                this.state.upload_message
 	                            ),
 	                            _react2.default.createElement('input', { className: 'btn', type: 'submit', value: 'Submit' })
 	                        )
@@ -58570,7 +58580,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n  -webkit-backface-visibility: hidden; }\n\n.uploads {\n  -webkit-animation: bounceInDown 1s ease 0.2s 1 both;\n  -moz-animation: bounceInDown 1s ease 0.2s 1 both;\n  animation: bounceInDown 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-around;\n  width: 100%; }\n\n@-webkit-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(30px); }\n  80% {\n    -webkit-transform: translateY(-10px); }\n  100% {\n    -webkit-transform: translateY(0px); } }\n\n@-moz-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -moz-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateY(30px); }\n  80% {\n    -moz-transform: translateY(-10px); }\n  100% {\n    -moz-transform: translateY(0px); } }\n\n@-o-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -o-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateY(30px); }\n  80% {\n    -o-transform: translateY(-10px); }\n  100% {\n    -o-transform: translateY(0px); } }\n\n@keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(-2000px);\n    transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(30px);\n    transform: translateY(30px); }\n  80% {\n    -webkit-transform: translateY(-10px);\n    transform: translateY(-10px); }\n  100% {\n    -webkit-transform: translateY(0px);\n    transform: translateY(0px); } }\n  .uploads .upload_form {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    width: 100%; }\n    .uploads .upload_form .system-name {\n      margin: 2px;\n      padding: 12; }\n    .uploads .upload_form .btn-container {\n      display: flex;\n      justify-content: space-between;\n      width: 100%; }\n      .uploads .upload_form .btn-container .check {\n        display: flex;\n        justify-content: space-around;\n        padding-top: 10px; }\n      .uploads .upload_form .btn-container .upload_file {\n        display: none; }\n      .uploads .upload_form .btn-container .filename {\n        display: flex;\n        flex-direction: column;\n        justify-content: center;\n        color: white;\n        font-size: 24px;\n        opacity: 0.7; }\n      .uploads .upload_form .btn-container .loading {\n        display: flex;\n        align-items: center;\n        height: 30px; }\n      .uploads .upload_form .btn-container .btn {\n        font-size: 14px;\n        background-color: #f9f9f9;\n        border: 1px solid #325c80;\n        color: #325c80;\n        padding: 12px;\n        cursor: pointer;\n        font-weight: bold;\n        transition: background 0.5s, color 0.5s; }\n      .uploads .upload_form .btn-container .btn:hover {\n        cursor: pointer;\n        background: #325c80;\n        color: #f9f9f9; }\n      .uploads .upload_form .btn-container .btn:focus {\n        outline: none; }\n", ""]);
+	exports.push([module.id, "body {\n  -webkit-backface-visibility: hidden; }\n\n.uploads {\n  -webkit-animation: bounceInDown 1s ease 0.2s 1 both;\n  -moz-animation: bounceInDown 1s ease 0.2s 1 both;\n  animation: bounceInDown 1s ease 0.2s 1 both;\n  -webkit-animation-backface-visibility: hidden;\n  -moz-animation-backface-visibility: hidden;\n  -ms-animation-backface-visibility: hidden;\n  -o-animation-backface-visibility: hidden;\n  animation-backface-visibility: hidden;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-around;\n  width: 100%; }\n\n@-webkit-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(30px); }\n  80% {\n    -webkit-transform: translateY(-10px); }\n  100% {\n    -webkit-transform: translateY(0px); } }\n\n@-moz-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -moz-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -moz-transform: translateY(30px); }\n  80% {\n    -moz-transform: translateY(-10px); }\n  100% {\n    -moz-transform: translateY(0px); } }\n\n@-o-keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -o-transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -o-transform: translateY(30px); }\n  80% {\n    -o-transform: translateY(-10px); }\n  100% {\n    -o-transform: translateY(0px); } }\n\n@keyframes bounceInDown {\n  0% {\n    opacity: 0;\n    -webkit-transform: translateY(-2000px);\n    transform: translateY(-2000px); }\n  60% {\n    opacity: 1;\n    -webkit-transform: translateY(30px);\n    transform: translateY(30px); }\n  80% {\n    -webkit-transform: translateY(-10px);\n    transform: translateY(-10px); }\n  100% {\n    -webkit-transform: translateY(0px);\n    transform: translateY(0px); } }\n  .uploads .upload_form {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    width: 100%; }\n    .uploads .upload_form .system-name {\n      margin: 2px;\n      padding: 12; }\n    .uploads .upload_form .btn-container {\n      display: flex;\n      justify-content: space-between;\n      width: 100%; }\n      .uploads .upload_form .btn-container .check {\n        display: flex;\n        justify-content: space-around;\n        padding-top: 10px; }\n      .uploads .upload_form .btn-container .upload_file {\n        display: none; }\n      .uploads .upload_form .btn-container .filename {\n        display: flex;\n        justify-content: center;\n        align-items: center;\n        color: white;\n        font-size: 24px;\n        opacity: 0.7; }\n      .uploads .upload_form .btn-container .loading {\n        display: flex;\n        align-items: center;\n        height: 30px; }\n      .uploads .upload_form .btn-container .btn {\n        font-size: 14px;\n        background-color: #f9f9f9;\n        border: 1px solid #325c80;\n        color: #325c80;\n        padding: 12px;\n        cursor: pointer;\n        font-weight: bold;\n        transition: background 0.5s, color 0.5s; }\n      .uploads .upload_form .btn-container .btn:hover {\n        cursor: pointer;\n        background: #325c80;\n        color: #f9f9f9; }\n      .uploads .upload_form .btn-container .btn:focus {\n        outline: none; }\n", ""]);
 
 	// exports
 

@@ -12,9 +12,9 @@ import ibm_db_dbi
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
 
+MAX_ANS_LEN = 30000
 
 table_names = ["Systems", "Uploads", "Questions"]
-
 tables = {
     'Systems': {
         'columns': [
@@ -66,7 +66,7 @@ tables = {
             },
             {
                 'title': 'System_Answer',
-                'type': 'VARCHAR(30000)',
+                'type': 'VARCHAR({0})'.format(MAX_ANS_LEN),
                 'options': 'NOT NULL'
             },
             {
@@ -208,7 +208,7 @@ def get_annotated(system_name):
     return gt
 
 
-def get_similar(answer):  # TODO: write this method
+def get_similar(answer):
     acceptable_annotation_score = 60
 
     cmd = "Select Question_Text, Annotation_Score FROM \"Questions\" WHERE System_Answer=? AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>? "
@@ -292,11 +292,16 @@ def upload_questions(system_name, file):
     cmd = 'INSERT INTO "Questions" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)'
     params = []
     for i, row in enumerate(reader):
+
+        if len(row['TopAnswerText']) > MAX_ANS_LEN:
+            return 'TopAnswerText field too long'
+
         par = row['QuestionText'].decode('latin-1'), row['TopAnswerText'].decode('latin-1'), row['TopAnswerConfidence'], upload_id
         params.append(par)
 
     execute_many(cmd, params)
     tmp.close()
+    return True
 
 
 def execute_cmd(cmd, fetch_results=False, parameters=None):
@@ -317,11 +322,11 @@ def execute_many(cmd, parameters):
 
 
 def connect_to_db():
-    db = config.get('db2', 'db')
-    hostname = config.get('db2', 'hostname')
-    port = config.get('db2', 'port')
-    user = config.get('db2', 'username')
-    pw = config.get('db2', 'password')
+    db = config.get('database', 'db')
+    hostname = config.get('database', 'hostname')
+    port = config.get('database', 'port')
+    user = config.get('database', 'username')
+    pw = config.get('database', 'password')
 
     connect_string = "DATABASE=" + db + ";HOSTNAME=" + hostname + ";PORT=" + port + ";UID=" + user + ";PWD=" + pw + ";"
 
@@ -331,7 +336,7 @@ def connect_to_db():
     cursor = conn.cursor()
     return cursor
 
-# try:
-    # init_database()
-# except:
-    # pass
+try:
+    init_database()
+except:
+    pass
