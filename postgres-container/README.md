@@ -1,6 +1,6 @@
-# Creating a DB2 instance in a Bluemix Container
+# Creating a Postgres instance in a Bluemix Container
 
-If you do not have a db2 instance, these instructions should help you create one in a container on Bluemix. Make sure you have installed the stated dependencies before starting.
+If you do not have a postgres instance, these instructions should help you create one in a container on Bluemix. Make sure you have installed the stated dependencies before starting.
 
 ## Dependencies
 - Cloud Foundry CLI version 6.12.0 or later ([Install here](http://docs.cloudfoundry.org/cf-cli/install-go-cli.html))  
@@ -29,11 +29,11 @@ Create a namespace for your registry (I recommend using your username as registr
 Run the following command to login to Bluemix containers.  
 `cf ic login`
 
-From inside the db2container folder, you can build the db2 image in your bluemix registry.  
-`cf ic build -t registry.ng.bluemix.net/<registry-name>/db2 .`
+Copy the image for the postgres container to your registry.  
+`cf ic cpi postgres <registry-name>/postgres:latest`
 
-Start a bluemix container (named container). **Note: The password requirements are *extremely* strict. I recommend using a random character string (make sure to write it down as you will need it later)**   
-`cf ic run -p 50000:50000 -m 256 -e DB2INST1_PASSWORD=<password> -e LICENSE=accept --name container registry.ng.bluemix.net/<registry-name>/db2:latest db2start`
+Start a bluemix container (named container).  
+`cf ic run --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=<password> -e POSTGRES_DB=aa_db -d <registry-name>/postgres`
 
 Periodically run the following command until you see the Status of your container is running. This should only take a minute or two.  
 `cf ic ps -a`
@@ -45,14 +45,11 @@ Run the following command to check the public IP's assigned to your bluemix org.
 If the ID of your container is listed next to one of the IP's, then skip the following command. Otherwise, choose one of the IP Addresses in the list to bind to your container.  
 `cf ic ip bind <ip-address> container`
 
-Run the following script to initialize the database  
-`./create_database.sh`
-
 Update config/properties.ini for annotation-assist:  
 hostname = the public ip address you bound your container to  
-username = db2inst1  
+username = postgres  
 password = the password you specified in the `cf ic run...` command  
-port = 50000  
+port = 5432  
 db = aa_db
 
 ##Possible Issues
