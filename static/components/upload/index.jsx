@@ -14,6 +14,7 @@ export default class Upload extends React.Component {
             log_uri: 'No File Found',
             trying_to_delete: false,
             upload_status: 'not started',
+            upload_message: '',
             systems: [],
         };
     }
@@ -73,12 +74,20 @@ export default class Upload extends React.Component {
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
-                    this.setState({ upload_status: 'complete' });
+                    this.setState({ upload_status: 'Upload Succeeded' });
 
                     form.reset();
                 } else {
-                    this.setState({ upload_status: 'failed' });
+                    let message;
+                    try {
+                        message = JSON.parse(xhr.responseText).message;
+                    } catch (error) {
+                        message = 'Upload Failed';
+                    }
+                    this.setState({ upload_status: 'failed', upload_message: message });
                 }
+
+                form.reset();
             }
         };
 
@@ -116,7 +125,7 @@ export default class Upload extends React.Component {
                             <span className="filename" style={{ display: this.state.upload_status === 'not started' ? '' : 'none' }}>{this.state.log_uri}</span>
                             <img className="loading" style={{ display: this.state.upload_status === 'started' ? '' : 'none' }} src={Thinking} alt="uploading..." />
                             <span className="filename" style={{ display: this.state.upload_status === 'complete' ? '' : 'none' }} >&#10003; Upload Succeeded</span>
-                            <span className="filename" style={{ display: this.state.upload_status === 'failed' ? '' : 'none' }}>&#10007; Upload Failed</span>
+                            <span className="filename" style={{ display: this.state.upload_status === 'failed' ? '' : 'none' }}>&#10007; &nbsp; {this.state.upload_message}</span>
 
                             <input className="btn" type="submit" value="Submit" />
                         </div>

@@ -28,8 +28,9 @@
             }
             .filename {
                 display: flex;
-                flex-direction: column;
+                //flex-direction: column;
                 justify-content: center;
+                align-items:center;
                 color: white;
                 font-size: 24px;
                 opacity: 0.7;

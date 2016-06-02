@@ -42,7 +42,11 @@ def upload():
     if ext not in ['.csv']:
         return Response(json.dumps({'message': 'Invalid File Type'}), status=400)
 
-    db_ops.upload_questions(system_name, data)
+    upload_status = db_ops.upload_questions(system_name, data)
+
+    if upload_status is not True:
+        return Response(json.dumps({'message': upload_status}), status=400)
+
     return Response(json.dumps({'message': 'Upload Successful'}), status=200)
 
 

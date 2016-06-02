@@ -12,6 +12,7 @@ import ibm_db_dbi
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
 
+MAX_ANS_LEN = 30000
 
 table_names = ["Systems", "Uploads", "Questions"]
 tables = {
@@ -65,7 +66,7 @@ tables = {
             },
             {
                 'title': 'System_Answer',
-                'type': 'VARCHAR(30000)',
+                'type': 'VARCHAR({0})'.format(MAX_ANS_LEN),
                 'options': 'NOT NULL'
             },
             {
@@ -291,11 +292,16 @@ def upload_questions(system_name, file):
     cmd = 'INSERT INTO "Questions" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)'
     params = []
     for i, row in enumerate(reader):
+
+        if len(row['TopAnswerText']) > MAX_ANS_LEN:
+            return 'TopAnswerText field too long'
+
         par = row['QuestionText'].decode('latin-1'), row['TopAnswerText'].decode('latin-1'), row['TopAnswerConfidence'], upload_id
         params.append(par)
 
     execute_many(cmd, params)
     tmp.close()
+    return True
 
 
 def execute_cmd(cmd, fetch_results=False, parameters=None):
