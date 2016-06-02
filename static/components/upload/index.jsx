@@ -74,7 +74,7 @@ export default class Upload extends React.Component {
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
-                    this.setState({ upload_status: 'Upload Succeeded' });
+                    this.setState({ upload_status: 'complete' });
 
                     form.reset();
                 } else {
