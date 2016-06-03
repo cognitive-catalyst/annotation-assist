@@ -39,11 +39,13 @@ def upload():
     system_name = request.form['system-name']
     filename = data.filename
     name, ext = os.path.splitext(filename)
+    print 'here'
     if ext not in ['.csv']:
         return Response(json.dumps({'message': 'Invalid File Type'}), status=400)
+    print 'here 2'
 
     upload_status = db_ops.upload_questions(system_name, data)
-
+    print upload_status
     if upload_status is not True:
         return Response(json.dumps({'message': upload_status}), status=400)
 

@@ -10,6 +10,8 @@ from db_manager import DBManager
 
 psycopg2 = pool.manage(psycopg2)
 
+MAX_ANS_LEN = 30000
+
 
 class Postgres(DBManager):
 
@@ -18,6 +20,11 @@ class Postgres(DBManager):
         self.dbname = dbname
         self.username = username
         self.password = password
+        tables = self._get_tables_in_db()
+        if 'uploads' not in tables:
+            self._create_uploads_table()
+        if 'questions' not in tables:
+            self._create_questions_table()
 
     def connected(func):
         def reconnect(self, *args, **kwargs):
@@ -31,20 +38,66 @@ class Postgres(DBManager):
             retval = func(self, *args, **kwargs)
 
             if close_conn:
+                conn.commit()
                 conn.close()
-
             return retval
+
         return reconnect
 
     def _get_conn(self):
         return psycopg2.connect(host=self.hostname, user=self.username, password=self.password, dbname=self.dbname)
 
     @connected
+    def _get_tables_in_db(self, conn=None):
+        cmd = '''
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema='public'
+        '''
+
+        with conn.cursor() as c:
+            c.execute(cmd)
+            tables = c.fetchall()
+
+        return [t[0] for t in tables]
+
+    @connected
+    def _create_uploads_table(self, conn=None):
+        '''Creates the systems table in the database'''
+        cmd = '''
+            CREATE TABLE uploads(
+                id SERIAL PRIMARY KEY,
+                timestamp TIMESTAMP DEFAULT(now() at time zone 'EST'),
+                system_name VARCHAR(15)
+            )
+        '''
+
+        with conn.cursor() as c:
+            c.execute(cmd)
+
+    @connected
+    def _create_questions_table(self, conn=None):
+        '''Creates the questions table in the database'''
+        cmd = '''
+            CREATE TABLE questions(
+                id SERIAL PRIMARY KEY,
+                question_text VARCHAR(800) NOT NULL,
+                system_answer VARCHAR(30000) NOT NULL,
+                confidence FLOAT,
+                is_in_purview BOOLEAN,
+                annotation_score INT,
+                is_annotated BOOLEAN DEFAULT FALSE,
+                upload_id INT REFERENCES uploads(id)
+            )
+        '''
+
+        with conn.cursor() as c:
+            c.execute(cmd)
+
+    @connected
     def delete_all(self, conn=None):
         with conn.cursor() as c:
             c.execute("TRUNCATE uploads CASCADE")
-
-        conn.commit()
 
     @connected
     def get_percent(self, system_name, conn=None):
@@ -54,7 +107,7 @@ class Postgres(DBManager):
                 SELECT
                     1.0 * count(CASE WHEN is_annotated THEN 1 END) / COUNT(*)
                 FROM uploads, questions
-                WHERE uploads.id=questions.upload_id AND system_name=%s
+                WHERE uploads.id = questions.upload_id AND system_name = %s
             '''
             params = [system_name.upper()]
 
@@ -112,7 +165,6 @@ class Postgres(DBManager):
             c.execute(cmd)
             systems = [system[0] for system in c.fetchall()]
         return systems
-        return []
 
     @connected
     def get_exact_match(self, question, answer, conn=None):
@@ -188,7 +240,6 @@ class Postgres(DBManager):
         params = is_on_topic, human_performance_rating, question_id
         with conn.cursor() as c:
             c.execute(cmd, params)
-        conn.commit()
 
     @connected
     def _add_upload(self, system_name, conn=None):
@@ -203,6 +254,7 @@ class Postgres(DBManager):
     def upload_questions(self, system_name, file, conn=None):
         '''Upload the questions in the file and link them to the given system'''
         upload_id = self._add_upload(system_name, conn=conn)
+
         with tempfile.TemporaryFile(mode='U+w') as tmp:
             tmp.write(file.read())
             tmp.seek(0)
@@ -223,5 +275,4 @@ class Postgres(DBManager):
 
         with conn.cursor() as c:
             c.executemany(cmd, params)
-
-        conn.commit()
+        return True

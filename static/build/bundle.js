@@ -33135,7 +33135,7 @@
 	            xhr.onreadystatechange = function () {
 	                if (xhr.readyState === 4) {
 	                    if (xhr.status === 200) {
-	                        _this.setState({ upload_status: 'Upload Succeeded' });
+	                        _this.setState({ upload_status: 'complete' });
 
 	                        form.reset();
 	                    } else {

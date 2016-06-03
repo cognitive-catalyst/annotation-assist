@@ -58,4 +58,4 @@ def bundle():
 if __name__ == '__main__':
     logging.root.setLevel("INFO")
     port = os.getenv('VCAP_APP_PORT', '8080')
-    app.run(host='0.0.0.0', port=int(port), debug=True, processes=4)
+    app.run(host='0.0.0.0', port=int(port), debug=True)
