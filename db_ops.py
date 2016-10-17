@@ -1,22 +1,20 @@
-import logging
-import json
+import ConfigParser
 import csv
+import datetime
+import logging
+import tempfile
+
 import ibm_db
 import ibm_db_dbi
-import datetime
-import os
-import ConfigParser
-from StringIO import StringIO
-import tempfile
 
 # TODO: export needs to consider the checkbox variables
 
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
 
+MAX_ANS_LEN = 30000
 
 table_names = ["Systems", "Uploads", "Questions"]
-
 tables = {
     'Systems': {
         'columns': [
@@ -68,26 +66,30 @@ tables = {
             },
             {
                 'title': 'System_Answer',
-                'type': 'VARCHAR(30000)',
+                'type': 'VARCHAR({0})'.format(MAX_ANS_LEN),
                 'options': 'NOT NULL'
             },
             {
                 'title': 'Confidence',
                 'type': 'DOUBLE',
                 'options': ''
-            }, {
+            },
+            {
                 'title': 'Is_In_Purview',
                 'type': 'SMALLINT',
                 'options': ''
-            }, {
+            },
+            {
                 'title': 'Annotation_Score',
                 'type': 'INT',
                 'options': ''
-            }, {
+            },
+            {
                 'title': 'Is_Annotated',
                 'type': 'SMALLINT',
                 'options': 'NOT NULL with DEFAULT'
-            }, {
+            },
+            {
                 'title': 'Upload_ID',
                 'type': 'INT',
                 'options': 'NOT NULL'
@@ -109,8 +111,10 @@ def init_database():
     for name in table_names:
         try:
             _create_table(name, tables[name])
+            logging.info('Creating table "%s".', name)
+
         except ibm_db_dbi.ProgrammingError:
-            logging.warning('Failed to create table %s. Table already exists.', name)
+            logging.info('Preexisting table "%s" detected.', name)
 
 
 def _create_table(name, options):
@@ -149,8 +153,9 @@ def delete_all():
 
 def _add_system(system_name):
     '''Adds a new system to the database'''
-    cmd = "INSERT INTO \"Systems\" (NAME) VALUES('{0}');".format(system_name.upper())
-    execute_cmd(cmd)
+
+    cmd = 'INSERT INTO "Systems" (NAME) VALUES(?)'
+    execute_cmd(cmd, parameters=[system_name.upper()])
 
 
 def _add_upload(system_name):
@@ -159,52 +164,34 @@ def _add_upload(system_name):
         _add_system(system_name)
 
     timestamp = datetime.datetime.now()
-    cmd = "INSERT INTO \"Uploads\" (System_Name, Timestamp) VALUES('{0}','{1}');".format(system_name.upper(), timestamp)
-    execute_cmd(cmd)
 
-    cmd = "SELECT Upload_ID FROM \"Uploads\" WHERE Timestamp='{0}'".format(timestamp)
-    results = execute_cmd(cmd, True)[0]
+    cmd = 'SELECT Upload_ID FROM NEW TABLE(INSERT INTO "Uploads" (System_Name, Timestamp) VALUES(?, ?))'
+    params = system_name.upper(), timestamp
+    results = execute_cmd(cmd, True, params)
 
-    upload_id = results[0]
+    upload_id = results[0][0]
     return upload_id
-
-
-def _add_question(question, upload_id):
-    '''Add the given question to the table with foreign key upload_id'''
-
-    try:
-        cmd = "INSERT INTO \"Questions\" (Question_Text,System_Answer,Confidence,Upload_ID) Values('{0}','{1}','{2}','{3}')" \
-            .format(question['QuestionText'].replace("'", "''"), question['TopAnswerText'].replace("'", "''"), question['TopAnswerConfidence'], upload_id).decode('latin-1')
-
-        execute_cmd(cmd)
-    except:
-        raise
 
 
 def _system_does_exist(system_name):
     '''Check if the given system exists in the table'''
 
-    cmd = 'SELECT COUNT(1) FROM "Systems" WHERE Name=\'{0}\''.format(system_name.upper())
-    res = execute_cmd(cmd, True)[0][0]
+    cmd = 'SELECT COUNT(1) FROM "Systems" WHERE Name=?'
+    res = execute_cmd(cmd, True, [system_name.upper()])[0][0]
 
     return bool(res)
 
 
 def get_percent(system_name=None):
-    if system_name != '':
-        cmd1 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\''.format(system_name.upper())
-        cmd2 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\' AND IS_ANNOTATED=\'1\''.format(system_name.upper())
+    if system_name != '' and system_name is not None:
+        cmd = 'SELECT FLOAT(SUM(IS_ANNOTATED))/COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=?'
+        param = [system_name.upper()]
     else:
-        cmd1 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id'
-        cmd2 = 'SELECT COUNT(*) FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'1\''
+        cmd = 'SELECT FLOAT(SUM(IS_ANNOTATED))/COUNT(*) FROM "Questions"'
+        param = None
 
-    total = execute_cmd(cmd1, True)[0][0]
-    annotated = execute_cmd(cmd2, True)[0][0]
-
-    if total != 0:
-        return float(annotated) / total * 100
-    else:
-        return 0.0
+    percentage = execute_cmd(cmd, True, param)[0][0]
+    return percentage * 100
 
 
 def get_annotated(system_name):
@@ -221,14 +208,13 @@ def get_annotated(system_name):
     return gt
 
 
-def get_similar(answer):  # TODO: write this method
+def get_similar(answer):
     acceptable_annotation_score = 60
 
-    output_fields = ["Question_Text", "Annotation_Score"]
+    cmd = "Select Question_Text, Annotation_Score FROM \"Questions\" WHERE System_Answer=? AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>? "
+    params = answer, acceptable_annotation_score - 1
 
-    cmd = "Select {0} FROM \"Questions\" WHERE System_Answer='{1}' AND IS_ANNOTATED ='1' AND ANNOTATION_SCORE>'{2}' ".format(','.join(output_fields), answer.replace("'", "''"), acceptable_annotation_score - 1)
-
-    questions = execute_cmd(cmd, True)
+    questions = execute_cmd(cmd, True, params)
     return questions
 
 
@@ -240,20 +226,23 @@ def get_systems():
 
 
 def get_exact_match(question, answer):
-    cmd = u"SELECT Is_In_Purview, Annotation_Score FROM \"Questions\" WHERE Question_Text='{0}' AND System_Answer='{1}' AND IS_ANNOTATED='1' ".format(question.replace("'", "''"), answer.replace("'", "''"))
+    # cmd = u"SELECT Is_In_Purview, Annotation_Score FROM \"Questions\" WHERE Question_Text='{0}' AND System_Answer='{1}' AND IS_ANNOTATED='1' ".format(question.replace("'", "''"), answer.replace("'", "''"))
+    cmd = 'SELECT Is_In_Purview, Annotation_Score FROM "Questions" WHERE QUESTION_TEXT=? and System_Answer=? and IS_ANNOTATED=?'
+    params = question, answer, 1
 
-    return execute_cmd(cmd, True)
+    return execute_cmd(cmd, True, params)
 
 
 def get_question(system_name=None):
     '''Get a random question from the given system'''
-
+    params = None
     if system_name and system_name != '':
-        cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=\'{0}\' AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'.format(system_name.upper())
+        cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND System_Name=? AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
+        params = [system_name.upper()]
     else:
         cmd = 'SELECT Question_Text, Question_ID, System_Answer FROM "Uploads","Questions" WHERE "Uploads".Upload_id="Questions".Upload_id AND IS_ANNOTATED=\'0\' ORDER BY RAND() FETCH FIRST 1 ROWS ONLY'
 
-    result = execute_cmd(cmd, True)
+    result = execute_cmd(cmd, True, params)
     if len(result) > 0:
         qdata = result[0]
 
@@ -263,18 +252,28 @@ def get_question(system_name=None):
             return get_question(system_name)
 
         question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
-        return {'question': question, "similar": get_similar(qdata[2])}
+        try:
+            return {'question': question, "similar": get_similar(qdata[2])}
+        except:
+            return {'question': question, "similar": []}
     return False
+
+
+def get_question_from_id(q_id):
+    cmd = "SELECT QUESTION_TEXT, QUESTION_ID, SYSTEM_ANSWER FROM \"Questions\" WHERE QUESTION_ID = ?"
+    result = execute_cmd(cmd, True, parameters=[q_id])
+
+    qdata = result[0]
+    question = {'text': qdata[0], 'id': qdata[1], 'answer': qdata[2]}
+
+    return {'question': question, 'similar': get_similar(qdata[2])}
 
 
 def update_question(question_id, is_on_topic, human_performance_rating=0):
     '''Update the annotation scores for the give question id'''
-
-    cmd = "UPDATE(SELECT * FROM \"Questions\" WHERE Question_ID='{0}') \
-        SET IS_ANNOTATED='{1}', IS_IN_PURVIEW='{2}', Annotation_Score='{3}'" \
-        .format(question_id, int(True), int(is_on_topic), human_performance_rating)
-
-    execute_cmd(cmd)
+    cmd = 'UPDATE(SELECT * FROM "Questions" WHERE Question_ID=?) SET IS_ANNOTATED=?, IS_IN_PURVIEW=?, Annotation_Score=?'
+    params = question_id, int(True), int(is_on_topic), human_performance_rating
+    execute_cmd(cmd, False, params)
 
 
 def upload_questions(system_name, file):
@@ -290,21 +289,25 @@ def upload_questions(system_name, file):
     tmp.seek(0)
     reader = csv.DictReader(tmp)
 
+    cmd = 'INSERT INTO "Questions" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)'
     params = []
     for i, row in enumerate(reader):
+
+        if len(row['TopAnswerText']) > MAX_ANS_LEN:
+            return 'TopAnswerText field too long'
+
         par = row['QuestionText'].decode('latin-1'), row['TopAnswerText'].decode('latin-1'), row['TopAnswerConfidence'], upload_id
         params.append(par)
 
-    cmd = "INSERT INTO \"Questions\" (Question_Text, System_Answer, Confidence, Upload_ID) Values(?, ?, ?, ?)"
-
-    tmp.close()
     execute_many(cmd, params)
+    tmp.close()
+    return True
 
 
-def execute_cmd(cmd, fetch_results=False):
+def execute_cmd(cmd, fetch_results=False, parameters=None):
+    results = None
     cursor = connect_to_db()
-    cursor.execute(cmd)
-    results = True
+    cursor.execute(cmd, parameters)
     if fetch_results:
         results = cursor.fetchall()
     cursor.close()
@@ -319,11 +322,11 @@ def execute_many(cmd, parameters):
 
 
 def connect_to_db():
-    db = config.get('db2', 'db')
-    hostname = config.get('db2', 'hostname')
-    port = config.get('db2', 'port')
-    user = config.get('db2', 'username')
-    pw = config.get('db2', 'password')
+    db = config.get('database', 'db')
+    hostname = config.get('database', 'hostname')
+    port = config.get('database', 'port')
+    user = config.get('database', 'username')
+    pw = config.get('database', 'password')
 
     connect_string = "DATABASE=" + db + ";HOSTNAME=" + hostname + ";PORT=" + port + ";UID=" + user + ";PWD=" + pw + ";"
 

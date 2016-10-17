@@ -2,7 +2,7 @@
 
 If you do not have a db2 instance, these instructions should help you create one in a container on Bluemix. Make sure you have installed the stated dependencies before starting.
 
-##Dependencies 
+##Dependencies
 - Cloud Foundry CLI version 6.12.0 or later ([Install here](http://docs.cloudfoundry.org/cf-cli/install-go-cli.html))  
 - Docker ([Install here](https://docs.docker.com/engine/installation/))
 
@@ -30,11 +30,11 @@ Run the following command to login to Bluemix containers.
 `cf ic login`
 
 Push the [DB2 Express-c image](https://hub.docker.com/r/ibmcom/db2express-c/) to your registry. This step will take approximately 15 minutes.  
-`cf ic cpi ibmcom/db2express-c <registry-name>/db2:latest`
+`cf ic build -t registry.ng.bluemix.net/<registry-name>/db2 .`
 
 
 Start a bluemix container (named container). **Note: The password requirements are *extremely* strict. I recommend using a random character string (make sure to write it down as you will need it later)**   
-`cf ic run -p 50000:50000 -m 256 -e DB2INST1_PASSWORD=<password> -e LICENSE=accept --name container registry.ng.bluemix.net/<registry-name>/db2:latest bash`
+`cf ic run -p 50000:50000 -m 256 -e DB2INST1_PASSWORD=<password> -e LICENSE=accept --name container registry.ng.bluemix.net/<registry-name>/db2:latest db2start`
 
 Periodically run the following command until you see the Status of your container is running. This should only take a minute or two.  
 `cf ic ps -a`

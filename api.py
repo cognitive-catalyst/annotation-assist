@@ -1,22 +1,37 @@
-from flask import Flask, request, Blueprint, send_file, Response
-
-import csv
-import os
-import json
-import StringIO
-import db_ops
-import datetime
-import time
 import ConfigParser
+import csv
+import datetime
+import json
+import logging
 import math
+import os
+import StringIO
+
+from flask import Blueprint, Response, request, send_file
+
+import db_ops
+
+print db_ops
+# from db_ops import get_manager
+
+# import db_ops_db2 as db_ops
 
 blueprint = Blueprint("api", __name__)
 config = ConfigParser.ConfigParser()
 config.read('config/properties.ini')
 
+# db_ops = get_manager(
+#     config.get('database', 'database_type'),
+#     config.get('database', 'hostname'),
+#     config.get('database', 'db'),
+#     config.get('database', 'username'),
+#     config.get('database', 'password'),
+# )
+
 
 @blueprint.route('/delete_db', methods=['POST'])
 def delete():
+
     db_ops.delete_all()
     return 'done'
 
@@ -30,14 +45,27 @@ def upload():
     if ext not in ['.csv']:
         return Response(json.dumps({'message': 'Invalid File Type'}), status=400)
 
-    db_ops.upload_questions(system_name, data)
+    upload_status = db_ops.upload_questions(system_name, data)
+
+    if upload_status is not True:
+        return Response(json.dumps({'message': upload_status}), status=400)
+
     return Response(json.dumps({'message': 'Upload Successful'}), status=200)
 
 
-@blueprint.route('/get_question', methods=["POST", "GET"])
+@blueprint.route('/get_question', methods=["POST"])
 def annotate():
     system_name = request.form['system_name']
     question_data = db_ops.get_question(system_name)
+    if question_data:
+        return Response(json.dumps(question_data), status=200)
+    else:
+        return Response(json.dumps({'message': 'no questions found'}), status=204)
+
+
+@blueprint.route('/get_question/<path:q_id>', methods=["GET"])
+def get_question_from_id(q_id):
+    question_data = db_ops.get_question_from_id(q_id)
     if question_data:
         return Response(json.dumps(question_data), status=200)
     else:
@@ -50,7 +78,7 @@ def get_systems():
     return json.dumps({'systems': systems})
 
 
-@blueprint.route('/topic', methods=["POST", "GET"])
+@blueprint.route('/update', methods=["POST", "GET"])
 def topic():
     question_id = request.form['_id']
     is_on_topic = request.form['on_topic']
@@ -88,7 +116,7 @@ def get_all_gt():
 
 def _encode_me(d):
     for key in d:
-        if type(d[key]) not in [int, float]:
+        if type(d[key]) not in [int, bool, datetime.datetime, float]:
             d[key] = d[key].encode('latin-1')
     return d
 
@@ -104,10 +132,6 @@ def export_gt():
 
     for line in gt:
         f.writerow(_encode_me(line))
-        print line['System_Answer'].encode('latin-1')
-        print
-        print repr(line['System_Answer'].encode('latin-1'))
-        print
 
     buf.seek(0)
 

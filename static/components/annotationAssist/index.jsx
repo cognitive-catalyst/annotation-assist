@@ -1,183 +1,210 @@
-var
+import React from 'react';
+import QueryCard from 'queryCard';
+import ResponseCard from 'responseCard';
+import SystemSelector from 'systemSelector';
+import $ from 'jquery';
+import './style.scss';
 
-React            = require('react/addons'),
-Button           = require('../button'),
-QueryCard        = require('../queryCard'),
-ResponseCard     = require('../responseCard'),
-SystemSelector   = require('../systemSelector'),
-Header           = require('../header'),
-$                = require('jquery'),
+const ON_TOPIC_INITIALIZED = false;
 
-AnnotationAssist =
+export default class AnnotationAssist extends React.Component {
 
-React.createClass({
+    constructor(props) {
+        super(props);
 
-    getInitialState: function() {
+        this.state = {
+            previousQuestionId: undefined,
+            questionId: '',
+            questionText: '',
+            answer: '',
 
-        return {
-            initial_question : '',
-            other_questions:[],
+            similarQuestions: [],
+            similarConf: undefined,
             new_questions: true,
-            answer: '',
-            human_performance: 'null',
-            on_topic: false,
-            loading: false,
-            systems: [],
+            onTopicClicked: ON_TOPIC_INITIALIZED,
             current_system: 'ALL SYSTEMS',
+            systems: [],
 
-        };
-    },
-
-    getSystems: function(){
-        $.ajax({
-            url: '/api/get_systems',
-            type: "GET",
-            success: function(resp) {
-                var systems = ['ALL SYSTEMS'].concat(JSON.parse(resp).systems);
-                this.setState({systems:systems});
-            }.bind(this)
-        })
-    },
-
-    noAnnotations: function() {
-        this.setState({
-            new_questions: false,
             loading: false,
-            initial_question: "NO QUESTIONS TO ANNOTATE"
-        });
-    },
+        };
+    }
 
-    newQuestion: function() {
-        this.setState({
-            answer: '',
-            initial_question : '',
-            other_questions:[],
-            on_topic: false,
-            loading: true
-        });
-        $.ajax({
-                url:  '/api/get_question',
-                type: "POST",
-                data: {system_name: (this.state.current_system=="ALL SYSTEMS") ? '':this.state.current_system},
-                statusCode:{
-                    200: (resp) => {
-                        const q_data = JSON.parse(resp);
-
-                        let similar_questions = []
-                        let similar_conf = 0
-                        for (var q in q_data.similar){
-                            similar_questions.push(q_data.similar[q][0])
-                            similar_conf = Math.max(similar_conf, q_data.similar[q][1])
-                        }
-
-                        this.setState({
-                            new_questions: true,
-                            initial_question: q_data.question.text,
-                            other_questions: similar_questions,
-                            question_id: q_data.question.id,
-                            answer: q_data.question.answer,
-                            loading: false,
-                            similar_conf:similar_conf
-                        })
-                    },
-                    204: () =>this.noAnnotations()
-                }
-        });
-    },
-
-    componentWillMount: function () {
+    componentWillMount() {
         this.getSystems();
         this.newQuestion();
-    },
+    }
 
-    changePerformance: function (perf){
-        this.setState({ human_performance: perf });
-    },
-
-    notSimilar: function() {
-        this.setState({other_questions: []});
-    },
-
-    similarToOthers: function(perf) {
-        this.newQuestion();
-        $.ajax({
-            url: '/api/topic',
-            type: "POST",
-            data: {_id:this.state.question_id,
-                    on_topic: true,
-                    human_performance: this.state.similar_conf,
-                  },
-            success: function(data){
-                // this.newQuestion();
-            }.bind(this)
-        });
-    },
-
-    onTopic: function(){
+    onTopic = () => {
         this.setState({
-            on_topic:true,
+            onTopicClicked: true,
         });
-    },
+    }
 
-    offTopic: function() {
+    setNewQuestion(resp) {
+        const qData = JSON.parse(resp);
+
+        const similarQuestions = [];
+        let similarConf = 0;
+        let q;
+        for (q of qData.similar) {
+            similarQuestions.push(q[0]);
+            similarConf = Math.max(similarConf, q[1]);
+        }
+
+        this.setState({
+            new_questions: true,
+            QuestionText: qData.question.text,
+            questionId: qData.question.id,
+            answer: qData.question.answer,
+            loading: false,
+            similarQuestions,
+            similarConf,
+        });
+    }
+
+    getPreviousQuestion() {
         $.ajax({
-            url: '/api/topic',
-            type: "POST",
-            data: {_id:this.state.question_id,
+            url: `/api/get_question/${this.state.previousQuestionId}`,
+            type: 'GET',
+            statusCode: {
+                200: (resp) => this.setNewQuestion(resp),
+                204: () => this.noAnnotations(),
+            },
+        });
+        this.setState({
+            previousQuestionId: undefined,
+            answer: '',
+            QuestionText: '',
+            similarQuestions: [],
+            onTopicClicked: ON_TOPIC_INITIALIZED,
+            loading: true,
+        });
+    }
+
+    getSystems() {
+        $.ajax({
+            url: '/api/get_systems',
+            type: 'GET',
+            success: (resp) => {
+                const systems = ['ALL SYSTEMS'].concat(JSON.parse(resp).systems);
+                this.setState({ systems });
+            },
+        });
+    }
+
+    submitToDB = (performance) => {
+        this.setState({
+            previousQuestionId: this.state.questionId,
+        });
+        $.ajax({
+            url: '/api/update',
+            type: 'POST',
+            data: { _id: this.state.questionId,
+                    on_topic: this.state.onTopicClicked,
+                    human_performance: performance,
+                  },
+            error: () => {
+                console.log('there has been an error'); // TODO: DISPLAY ERRORS?
+            },
+        });
+
+        this.newQuestion();
+    }
+
+    offTopic = () => {
+        this.setState({
+            previousQuestionId: this.state.questionId,
+        });
+
+        $.ajax({
+            url: '/api/update',
+            type: 'POST',
+            data: { _id: this.state.questionId,
                     on_topic: false,
                     human_performance: 0,
                   },
-            success: function(data){
-                this.newQuestion();
-            }.bind(this)
+            error: () => {
+                console.log('there has been an error'); // TODO: DISPLAY ERRORS?
+            },
         });
-    },
 
-    submitToDB: function() {
+        this.newQuestion();
+    }
+
+    similarToOthers = (perf) => {
+        this.submitToDB(80);
+    }
+    notSimilar = () => this.setState({ similarQuestions: [] });
+
+    changeActiveSystem = (newSystem) => {
+        this.setState({ current_system: newSystem }, this.newQuestion);
+    }
+
+    noAnnotations() {
+        this.setState({
+            new_questions: false,
+            loading: false,
+            QuestionText: 'NO QUESTIONS TO ANNOTATE',
+            onTopicClicked: false,
+        });
+    }
+
+    newQuestion = () => {
         $.ajax({
-            url: '/api/topic',
-            type: "POST",
-            data: {_id:this.state.question_id,
-                    on_topic: this.state.on_topic,
-                    human_performance: this.state.human_performance,
-                  },
-            success: function(data){
-                this.newQuestion();
-            }.bind(this)
+            url: '/api/get_question',
+            type: 'POST',
+            data: { system_name: (this.state.current_system === 'ALL SYSTEMS') ? '' : this.state.current_system },
+            statusCode: {
+                200: (resp) => this.setNewQuestion(resp),
+                204: () => this.noAnnotations(),
+            },
         });
-    },
+        this.setState({
+            answer: '',
+            QuestionText: '',
+            similarQuestions: [],
+            onTopicClicked: ON_TOPIC_INITIALIZED,
+            loading: true,
+        });
+    }
 
-    changeActiveSystem: function(new_system){
-        this.setState({current_system:new_system},this.newQuestion)
-    },
-
-    render: function() {
+    render() {
         return (
 
-            <div className='annotation-assist'>
-                <SystemSelector
-                        current_system={this.state.current_system}
-                        options={this.state.systems}
-                        updateSystem={this.changeActiveSystem}/>
-                <QueryCard question={this.state.initial_question}
-                           onTopic={this.onTopic}
-                           offTopic={this.offTopic}
-                           on_topic={this.state.on_topic}
-                           loading={this.state.loading}
-                           new_questions={this.state.new_questions}/>
-                <div style= {this.state.on_topic ?  {zIndex: -1} : {display: 'none'}}>
-                    <ResponseCard answer={this.state.answer}
-                                  other_questions={this.state.other_questions}
-                                  similar={this.similarToOthers}
-                                  notSimilar={this.notSimilar}
-                                  changePerformance={this.changePerformance}
-                                  submitToDB={this.submitToDB}/>
+            <div className="annotation-assist">
+                <div className="top-row">
+                    <a
+                      className={this.state.previousQuestionId !== undefined ? 'get-previous active' : 'get-previous'}
+                      onClick={this.state.previousQuestionId !== undefined ? this.getPreviousQuestion.bind(this) : ''}
+                    >
+                        ← See Previous
+                    </a>
+                    <SystemSelector
+                      current_system={this.state.current_system}
+                      options={this.state.systems}
+                      updateSystem={this.changeActiveSystem}
+                    />
                 </div>
-                <div className='skip-query' onClick={this.newQuestion} style={this.state.loading ? {display: 'none'} : {display: 'block'}}>Skip This Query</div>
+                <QueryCard
+                  question={this.state.QuestionText}
+                  onTopic={this.onTopic}
+                  offTopic={this.offTopic}
+                  on_topic={this.state.onTopicClicked}
+                  loading={this.state.loading}
+                  new_questions={this.state.new_questions}
+                />
+                <div style={this.state.onTopicClicked & !this.state.loading ? { zIndex: -1 } : { display: 'none' }}>
+                    <ResponseCard
+                      answer={this.state.answer}
+                      other_questions={this.state.similarQuestions}
+                      similar={this.similarToOthers}
+                      notSimilar={this.notSimilar}
+                      submitToDB={this.submitToDB}
+                    />
+                </div>
+                <div className="skip-query" onClick={this.newQuestion} style={this.state.loading ? { display: 'none' } : { display: 'block' }}>Skip This Query</div>
             </div>
 
         );
     }
-});
-
-module.exports = AnnotationAssist;
+}

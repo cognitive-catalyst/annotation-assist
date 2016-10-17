@@ -1,109 +1,82 @@
+import React from 'react';
+import Button from 'button';
+import './style.scss';
 
-var
+const SimilarQuestions = ({ questions }) => (
+    <ol className="other-question-container">
+        {questions.map((item, i) => <li key={i} className="other-question">{item}</li>)}
+    </ol>
+);
 
-React = require('react/addons'),
-Button = require('../button'),
+const Questions = (props) => (
 
-SimilarQuestions = React.createClass({
+    <div>
+        <p className="heading">Watson thinks these are related queries...</p>
+        <SimilarQuestions questions={props.questions} />
+        <p className="user-question">Does this question rephrase any of the above?</p>
 
-    render: function() {
+        <div className="similar-questions">
+            <Button onClick={props.similar} label="YES, THEY ARE SIMILAR" color="similar" />
+            <Button onClick={props.notSimilar} label="NO, NOT RELATED" color="not-similar" />
+        </div>
+    </div>
+);
 
-        if(this.props.questions.length){
-            var rows = this.props.questions.map(function(item, i){
-                return (
-                    <li className="other-question">{item}</li>
-                );
-            });
-        }
+class Answers extends React.Component {
 
-        return (
-            <ol className='other-question-container'>
-                {rows}
-            </ol>
-        );
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            score: undefined,
+        };
     }
-}),
 
-Questions = React.createClass({
-
-    render: function() {
-
-        return (
-
-            <div>
-                <p className='heading'>Watson thinks these are related queries...</p>
-                <SimilarQuestions questions={this.props.questions} />
-                <p className='user-question'>Does this question rephrase any of the above?</p>
-
-                <div className="similar-questions">
-                   <Button onClick={this.props.similar} label="YES, THEY ARE SIMILAR" color='similar' />
-                   <Button onClick={this.props.notSimilar} label="NO, NOT RELATED" color='not-similar' />
-                </div>
-            </div>
-        );
-    }
-}),
-
-Answers = React.createClass({
-
-    getInitialState: function(){
-        return {
-            disabled: true,
-            allActive: [false, false, false, false]
-        }
-    },
-
-     allActive: function(score, buttonId){
-
-        var activeButtons = [false,false,false,false];
-            activeButtons[buttonId] = true;
-            this.props.perf(score)
-            this.setState({allActive: activeButtons, disabled: false });
-     },
-
-     submitReset: function() {
-        this.props.submit();
+    submit = () => {
+        this.props.submit(this.state.score);
         this.setState({
-            allActive: [false,false,false,false]
-        })
-     },
+            score: undefined,
+        });
+    }
 
-    render: function(){
+    render() {
+        const labels = [
+            ['Wrong', 0],
+            ['Poor', 20],
+            ['Decent', 80],
+            ['Perfect', 100],
+        ];
 
-        var answer = this.props.answer;
+        let judgementButtons = labels.map((label) => (
+            <Button key={label} label={label[0]} active={label[1] === this.state.score} onClick={() => this.setState({ score: label[1] })} />
+        ));
+
+        const answer = this.props.answer;
 
         return (
 
             <div>
-                <p className='heading'>Watson responded...</p>
-                <div className='answer' dangerouslySetInnerHTML={{__html: answer}}></div>
+                <p className="heading">Watson responded...</p>
+                <div className="answer" dangerouslySetInnerHTML={{ __html: answer }}></div>
 
-                <div className='button-group'>
-                    <Button onClick={this.allActive.bind(this,0,0)} label='Wrong' color='wrong' active={this.state.allActive[0]}/>
-                    <Button onClick={this.allActive.bind(this,20,1)} label='Poor' color='Poor' active={this.state.allActive[1]}/>
-                    <Button onClick={this.allActive.bind(this,80,2)} label='Decent' color='Decent' active={this.state.allActive[2]}/>
-                    <Button onClick={this.allActive.bind(this,100,3)} label='Perfect' color='Perfect' active={this.state.allActive[3]}/>
-                    <Button onClick={this.submitReset.bind(this)} label='Submit'  color='Submit' disabled={this.state.disabled}/>
+                <div className="button-group">
+                    {judgementButtons}
+                    <Button onClick={this.submit} label="Submit" color="Submit" disabled={this.state.score === undefined} />
                 </div>
             </div>
         );
     }
-}),
+}
 
-ResponseCard = React.createClass({
+const ResponseCard = (props) => (
+    <div className="response-card">
 
-    render: function() {
-        return (
-            <div className='response-card'>
-
-                <div className='card'>
-                    {this.props.other_questions.length ?
-                        <Questions questions={this.props.other_questions} similar={this.props.similar} notSimilar={this.props.notSimilar}/> :
-                        <Answers answer={this.props.answer} perf={this.props.changePerformance} submit={this.props.submitToDB}/>}
-                </div>
-            </div>
-        );
-    }
-});
-
-module.exports = ResponseCard;
+        <div className="card">
+            {props.other_questions.length ?
+                <Questions questions={props.other_questions} similar={props.similar} notSimilar={props.notSimilar} /> :
+                <Answers answer={props.answer} perf={props.changePerformance} submit={props.submitToDB} />}
+        </div>
+    </div>
+)
+;
+export default ResponseCard;

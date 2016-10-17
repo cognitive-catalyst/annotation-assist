@@ -1,3 +1,6 @@
+@import '~sass/globals/mixins/mixins';
+@import '~sass/globals/variables';
+
 .query_card_background {
     @include transitions(background, 1.7s, ease);
     width: 100%;

@@ -1,4 +1,4 @@
-
+@import '~sass/globals/mixins/mixins';
 .header {
 	@include flexbox;
 	@include justify-content(space-between);

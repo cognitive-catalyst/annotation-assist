@@ -1,8 +1,9 @@
+@import '~sass/globals/_variables.scss';
 
 .accuracy-pop-up{
 
     $pop-up-width:630;
-    
+
     flex:1;
     display:flex;
     justify-content: flex-end;
@@ -25,7 +26,7 @@
 
         box-shadow:1px 1px 5px 5px rgba(100,100,100,0.1);
         position:absolute;
-        top:-$shift-up;
+        top:-$shift-up*2;
         left:-$pop-up-width - 120;
         padding:$pop-up-padding;
         width:$pop-up-width;

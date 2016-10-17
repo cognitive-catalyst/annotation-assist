@@ -1,8 +1,11 @@
-from flask import Flask, request, Response, send_file, redirect, send_from_directory, Blueprint
-from functools import wraps
 import ConfigParser
-import api
+import logging
 import os
+from functools import wraps
+
+from flask import Flask, Response, request, send_from_directory
+
+import api
 
 app = Flask(__name__, template_folder='.')
 app.register_blueprint(api.blueprint, url_prefix='/api')
@@ -53,5 +56,6 @@ def bundle():
 
 
 if __name__ == '__main__':
-    port = os.getenv('VCAP_APP_PORT', '8000')
+    logging.root.setLevel("INFO")
+    port = os.getenv('VCAP_APP_PORT', '8080')
     app.run(host='0.0.0.0', port=int(port), debug=True, processes=4)

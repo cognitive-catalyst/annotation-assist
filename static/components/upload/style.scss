@@ -1,51 +1,44 @@
-
+@import '~sass/animations/animate';
 .uploads {
     @include bounceInDown;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     width: 100%;
-
     .upload_form {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-
-      .system-name {
-          padding: 12;
-      }
-
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        .system-name {
+            margin: 2px;
+            padding: 12;
+        }
         .btn-container {
-          display: flex;
-          justify-content: space-between;
-          width: 100%;
-
-            .check{
-              display: flex;
-              justify-content: space-around;
-              padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            .check {
+                display: flex;
+                justify-content: space-around;
+                padding-top: 10px;
             }
-
             .upload_file {
                 display: none;
             }
-
-
-
             .filename {
                 display: flex;
-                flex-direction: column;
+                //flex-direction: column;
                 justify-content: center;
+                align-items:center;
                 color: white;
-                font-size:24px;
+                font-size: 24px;
                 opacity: 0.7;
             }
-
-            .loading{
-              display: flex;
-              align-items: center;
-              height:30px;
+            .loading {
+                display: flex;
+                align-items: center;
+                height: 30px;
             }
             .btn {
                 font-size: 14px;
@@ -58,12 +51,12 @@
                 transition: background 0.5s, color 0.5s;
             }
             .btn:hover {
-                  cursor: pointer;
-                  background: #325c80;
-                  color: #f9f9f9;
+                cursor: pointer;
+                background: #325c80;
+                color: #f9f9f9;
             }
             .btn:focus {
-                  outline: none;
+                outline: none;
             }
         }
     }
