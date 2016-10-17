@@ -1,8 +1,8 @@
 import React from 'react';
 import Thinking from 'img/watson-thinking-white.svg';
 import $ from 'jquery';
-import 'jquery-ui';
-import 'jquery-ui/themes/base/all.css';
+import 'jquery-ui'
+import 'jquery-ui/themes/smoothness/jquery-ui.css';
 import './style.scss';
 
 export default class Upload extends React.Component {
