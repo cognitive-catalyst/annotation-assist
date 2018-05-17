@@ -5,7 +5,7 @@ INTRODUCTION
 ------------
 
 Welcome to the Annotation Assist program! This project provides Watson
-products the feedback neccessary to learn and grow as cognitive systems.
+products the feedback necessary to learn and grow as cognitive systems.
 
 The basics: any Watson system that has a component of supervised machine
 learning to train a system can learn from a "human approved" question /
@@ -33,7 +33,7 @@ ANNOTATE
 --------
 
 The human is now ready to declare his/her rating on the performance of
-Watson taken from the mandatory quetsion/answer input pairs.  The human
+Watson taken from the mandatory question/answer input pairs.  The human
 will be presented with the
 
 * Query as typed by the user
@@ -70,7 +70,7 @@ to store the human annotation back to the WEA to be used to augment
 the ground truth.
 
 The data can also be exported in a format to chart system performance
-on the deployed system, the utimate metic of technical accuracy for
+on the deployed system, the utimate metric of technical accuracy for
 a machine learning system.
 
 
@@ -81,8 +81,8 @@ a machine learning system.
 2. Install the Cloud Foundry CLI ([Instructions Here](http://docs.cloudfoundry.org/cf-cli/install-go-cli.html))
 3. Get a local copy of the annotation assist code
  -`git clone https://github.com/cognitive-catalyst/annotation-assist`
-4. Modify the manifest.yml to uniquely name the service you want to create (change the hostname and name)
-5. Modify the properties.ini (Note: if you do **not** have a db2 instance, [click here](/db2container) for instructions on setting up db2 in a Bluemix container)
+4. Modify the `manifest.yml` to uniquely name the service you want to create (change the hostname and name)
+5. Modify the `properties.ini` (Note: if you do **not** have a db2 instance, [click here](/db2container) for instructions on setting up db2 in a Bluemix container)
  - [properties]
      - username (application level username)
      - password (application level password)
@@ -90,7 +90,7 @@ a machine learning system.
     - hostname (the hostname of your db2)
     - username (the db2 user)
     - password (the password for the db user)
-    - port (the port to access the database, default 50000)
+    - port (the port to access the database, default `50000`)
     - db (name of database)
 
 5. Login to your bluemix account from the command line
@@ -115,10 +115,10 @@ at the node website: https://nodejs.org/en/
 
 # Things we plan on working toward in the future/ aka possible extensions
 
-* Intergrate a way to export inputs to Rank and Retrieve system from annotations in database
+* Integrate a way to export inputs to Rank and Retrieve system from annotations in database
 * Add user IDs, and authorized only access to database upload screen
 
 # License
 
-see License.txt
+see `License.txt`
 
